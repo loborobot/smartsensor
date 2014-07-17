@@ -6,20 +6,72 @@
     } 
 }*/
 
-void startIniSim900()
+void startSim900()
 {
+ if(currentStatusGSM==GSMOFFLINE) {
+    // Si el estatus es OFFLINE intentar detectar
+    // el modulo por dos maneras
+    Serial.write("Trying to detect SIM900 module\r\n");
+    // Esperando a Call ready
+    if(waitForString("Call Ready",5000)) {
+      Serial.write("GSM Module detected. Current status: ONLINE\r\n");
+      currentStatusGSM=GSMONLINE;
+      // O verificando mediante comandos AT
+    } else if(checkForSIM900()) {
+      Serial.write("GSM Module already connected. Changing status to: ONLINE\r\n");
+      currentStatusGSM=GSMONLINE;
+    }
+  }
+  if(currentStatusGSM==GSMONLINE) {
+    // Si esta ONLINE procesara el comando de la interrupcion
+    if(sendMessage) {
+      // La primera vez que reciba la interrupcion intentara conectar
+      // Este codigo ignorara el envio del mensaje
+      if(currentStatusGPRS==GPRSDISCONNECTED) {
+        Serial.print("GPRS is disconnected. Starting up GPRS data.\r\n");
+        Serial.print("Current request is going to be ignored.\r\n");
+        // try to SETUP GPRS before connect
+        setupGPRS();
+        sendMessage = false;
+      // Una vez este conectado
+      // Intentara realizar la conexion
+      } else if(currentStatusGPRS==GPRSCONNECTED) {
+        Serial.print("DATA Interrupt received\r\n");
+        GET();
+        sendMessage = false;
+      }
+    }
+    bridge();
+  }
+  if(startShutDown) {
+    Serial.print("Shutdown interrupt received\r\n");
+    shutDown();
+    startShutDown = false;
+    currentStatusGSM = GSMOFFLINE;
+    currentStatusGPRS = GPRSDISCONNECTED;
+  }
+}
+
+
+void setupSim900(){
+  // Inicializar el SoftSerial
   mySerial.begin(9600);
 
+  // Inicializamos la ultima interrupcion para evitar que
+  // se activen al encender
   lastInt = millis();
   
-  pinMode(3,INPUT_PULLUP); 
+  
+  // Asignamos las interrupciones 0 y 1
+  pinMode(3,INPUT_PULLUP); // Maneja el apagado del modulo GSM
   attachInterrupt(0, pin3OnFalling, FALLING);
   
-  pinMode(2,INPUT_PULLUP); 
+  pinMode(2,INPUT_PULLUP); // Maneja la conexion al GPRS y envio de datos
   attachInterrupt(1, pin2OnFalling, FALLING);
 
   Serial.print("Arduino: Setup finished.\r\n");
 }
+
 
 void pin3OnFalling() {
   if((millis()-lastInt)>500) {
@@ -45,7 +97,7 @@ void shutdownGRPS() {
   waitForData(3000);
   pushSlow("AT+CGATT=0\r\n");
   waitForData(3000);
-  currentGPRS = DISCONNECTED;
+  currentStatusGPRS = GPRSDISCONNECTED;
 }
 
 void setupGPRS() {
@@ -69,7 +121,7 @@ void setupGPRS() {
   }
   pushSlow("AT+CIFSR\r\n"); 
   waitForData(1000);
-  currentGPRS = CONNECTED;
+  currentStatusGPRS = GPRSCONNECTED;
 }
 
 void GET() {
@@ -114,41 +166,6 @@ boolean checkForSIM900() {
   return true;
 }
 
-void stratSim900()
-{
- if(currentStatus==OFFLINE) {
-    Serial.write("Trying to detect SIM900 module\r\n");
-    if(waitForString("Call Ready",5000)) {
-      Serial.write("GSM Module detected. Current status: ONLINE\r\n");
-      currentStatus=ONLINE;
-    } else if(checkForSIM900()) {
-      Serial.write("GSM Module already connected. Changing status to: ONLINE\r\n");
-      currentStatus=ONLINE;
-    }
-  }
-  if(currentStatus==ONLINE) {
-    if(sendMessage) {
-      if(currentGPRS==DISCONNECTED) {
-        Serial.print("GPRS is disconnected. Starting up GPRS data.\r\n");
-        Serial.print("Current request is going to be ignored.\r\n");
-        setupGPRS();
-        sendMessage = false;
-      } else if(currentGPRS==CONNECTED) {
-        Serial.print("DATA Interrupt received\r\n");
-        GET();
-        sendMessage = false;
-      }
-    }
-    bridge();
-  }
-  if(startShutDown) {
-    Serial.print("Shutdown interrupt received\r\n");
-    shutDown();
-    startShutDown = false;
-    currentStatus = OFFLINE;
-    currentGPRS = DISCONNECTED;
-  }  
-}
 
 
 void clearBuffer() {
