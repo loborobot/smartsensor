@@ -101,3 +101,11 @@ void startSensorUV()
   Serial.println(" UVI");
   delay(1000);  
 }
+
+void startSensorSound()
+{
+  valorSOUND = analogRead(SOUND_PIN);
+  Serial.print("SOUND: ");
+  Serial.println(valorSOUND);
+  delay(250);
+}
