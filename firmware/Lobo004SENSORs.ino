@@ -19,7 +19,7 @@ void startSensorDHT11()
   }
 }
 
-
+/*
 void startSensorDHT22()
 {
   DHT22_ERROR_t errorCode;
@@ -70,6 +70,7 @@ void startSensorDHT22()
       break;
   }
 }
+*/
 
 void startSensorLDR()
 {
@@ -105,7 +106,22 @@ void startSensorUV()
 void startSensorSound()
 {
   valorSOUND = analogRead(SOUND_PIN);
+  //valorSOUND = constrain(valorSOUND, 0, 100); // value normalize
+  valorSOUND = map(valorSOUND, 0, 1023, 0, 100);
   Serial.print("SOUND: ");
   Serial.println(valorSOUND);
   delay(250);
+}
+
+
+void startFlowMeter()
+{
+  NbTopsFan = 0;   //Set NbTops to 0 ready for calculations
+  //sei();      //Enables interrupts
+  delay(1000);   //Wait 1 second
+  //cli();      //Disable interrupts
+  Calc = (NbTopsFan * 60 / 5.5); //(Pulse frequency x 60) / 5.5Q, = flow rate in L/hour 
+  Calc = (Calc / 60);
+  Serial.print (Calc, DEC); //Prints the number calculated above
+  Serial.print (" L/min\r\n"); //Prints "L/hour" and returns a  new line
 }
