@@ -6,6 +6,7 @@
     } 
 }*/
 
+/*
 void startSim900()
 {
  if(sim900gprs.getCurrentStatusGSM()==GSMOFFLINE) {
@@ -51,3 +52,4 @@ void startSim900()
     sim900gprs.setCurrentStatusGPRS(GPRSDISCONNECTED);
   }
 }
+*/
