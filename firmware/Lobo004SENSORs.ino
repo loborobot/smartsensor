@@ -1,24 +1,3 @@
-void startSensorDHT11()
-{
-  //Serial.println("\n");
-
-  int chk = p_dht11.read(DHT11PIN);
-
-  //Serial.print("Read sensor: ");
-  switch (chk)
-  {
-    case 0: //Serial.println("OK");
-            Serial.print("RH: ");
-            Serial.print(((float)p_dht11.humidity)/10, 2);Serial.print(" %");
-            Serial.print(" Temperature: ");
-            Serial.print(((float)p_dht11.temperature)/10, 2);Serial.println(" (oC)");
-            delay(2000);break;
-    case -1: Serial.println("Checksum error"); break;
-    case -2: Serial.println("Time out error"); break;
-    default: Serial.println("Unknown error"); break;
-  }
-}
-
 /*
 void startSensorDHT22()
 {
@@ -72,6 +51,28 @@ void startSensorDHT22()
 }
 */
 
+void startSensorDHT11()
+{
+  //Serial.println("\n");
+
+  int chk = p_dht11.read(DHT11PIN);
+
+  //Serial.print("Read sensor: ");
+  switch (chk)
+  {
+    case 0: //Serial.println("OK");
+            Serial.print("RH: ");
+            Serial.print(((float)p_dht11.humidity)/10, 2);Serial.print(" %");
+            Serial.print(" Temperature: ");
+            Serial.print(((float)p_dht11.temperature)/10, 2);Serial.println(" (oC)");
+            delay(2000);break;
+    case -1: Serial.println("Checksum error"); break;
+    case -2: Serial.println("Time out error"); break;
+    default: Serial.println("Unknown error"); break;
+  }
+}
+
+
 void startSensorLDR()
 {
   valorLDR = p_LDR.readDataLDR(LDR_PIN);
@@ -120,8 +121,9 @@ void startFlowMeter()
   //sei();      //Enables interrupts
   delay(1000);   //Wait 1 second
   //cli();      //Disable interrupts
-  Calc = (NbTopsFan * 60 / 5.5); //(Pulse frequency x 60) / 5.5Q, = flow rate in L/hour 
-  Calc = (Calc / 60);
-  Serial.print (Calc, DEC); //Prints the number calculated above
+  Calc = ((NbTopsFan * 60 / 5.5)/60); //(Pulse frequency x 60) / 5.5Q, = flow rate in L/hour 
+  //Calc = (Calc / 60);
+  //Serial.print (Calc, DEC); //Prints the number calculated above
+  Serial.print((float)Calc, 2);
   Serial.print (" L/min\r\n"); //Prints "L/hour" and returns a  new line
 }
