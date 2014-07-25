@@ -11,6 +11,7 @@
 #include <avr/interrupt.h> //DHT22
 #include <avr/pgmspace.h> //DHT22
 #include <string.h> //Sim900
+#include <stdio.h>
 //#include <../SoftwareSerial/SoftwareSerial.h> //Sim900
 
 #define DIRECT_READ(base, mask)		(((*(base)) & (mask)) ? 1 : 0) //DHT22
@@ -360,7 +361,7 @@ void Sim900::setupGPRS() {
     shutdownGRPS();
     return;
   }
-  pushSlow("AT+CSTT=\"movistar.pe\",\"movistar@datos\",\"movistar\"\r\n");
+  pushSlow("AT+CSTT=\"claro.pe\",\"claro\",\"claro\"\r\n");
   if(!waitForString("OK",10000)) {
     shutdownGRPS();
     return;
@@ -378,14 +379,14 @@ void Sim900::setupGPRS() {
 void Sim900::GET() {
   pushSlow("\r\n");
   waitForData(1000);
-  pushSlow("AT+CIPSTART=\"TCP\",\"pagina web (ex. dev.teubi.co)\",80\r\n");
+  pushSlow("AT+CIPSTART=\"TCP\",\"192.168.1.200\",8000\r\n");
   if(!waitForString("CONNECT OK",30000)) {
     return;
   }
   pushSlow("AT+CIPSEND\r\n");
   waitForData(1000);
-  pushSlow("GET /hola.php HTTP/1.1\r\n");
-  pushSlow("Host: dev.teubi.co\r\n");
+  pushSlow("GET /api/ HTTP/1.1\r\n");
+  pushSlow("Host: 192.168.1.35\r\n");
   pushSlow("Connection: Keep-Alive\r\n");
   pushSlow("\r\n");
   pushSlow("\x1A");
@@ -496,3 +497,51 @@ void Sim900::bridge() {
 }
 
 //==========================END SIM900========================
+
+//==================START HTTP====================
+String reqHTTP::get(){
+  reqGet = "GET /api/devices/ HTTP/1.0\nAccept: application/json\nAuthorization: Basic ZmluY3l0OmZpbmN5dA==\n";
+  return reqGet;
+
+}
+
+String reqHTTP::post(){
+  reqPost = "POST /api/devices/ HTTP/1.0\nContent-Type: application/json\nAccept: application/json\nAuthorization: Basic ZmluY3l0OmZpbmN5dA==\nContent-Length: 13";
+  return reqPost;
+
+}
+
+String reqHTTP::dataJson(float humidity,float temperature, float light, float ultra_violet, float sound, float flowmeter, float volume, float nitro_dioxide, float carbon_monoxide){
+  
+  data = "{\"gsm\": 1";
+  data += "\n\"temperature\": ";
+  data += convertF2C(temperature);
+  data += "\n\"humidity\": ";
+  data += convertF2C(humidity);
+  data += "\n\"light\": ";
+  data += convertF2C(light);
+  data += "\n\"ultra_violet\": ";
+  data += convertF2C(ultra_violet);
+  data += "\n\"sound\": ";
+  data += convertF2C(sound);
+  data += "\n\"flowmeter\": ";
+  data += convertF2C(flowmeter);
+  data += "\n\"volume\": ";
+  data += convertF2C(volume);
+  data += "\n\"nitro_dioxide\": ";
+  data += convertF2C(nitro_dioxide);
+  data += "\n\"carbon_monoxide\": ";
+  data += convertF2C(carbon_monoxide);
+  data += "}";
+  
+  return data;
+  //Serial.println(data);
+}
+
+char* reqHTTP::convertF2C(float val){
+  static char dtostrfbuffer[10];
+  return dtostrf(val,5, 2, dtostrfbuffer);
+}
+//==================END HTTP======================
+
+//=================START GPRS=============
