@@ -23,6 +23,7 @@
 #define BUFFSIZE 1024
 #include <../SoftwareSerial/SoftwareSerial.h>
 #include <string.h>
+#include <../GSM/GSM.h>
 //#include "enums.h"
 //#include "utils.h"
 
@@ -120,7 +121,6 @@ class sFLOWMETER
 {
 };
 
-
 class Sim900
 {
   private:
@@ -159,5 +159,19 @@ class Sim900
     inline void setSendMessage(bool TrueFalse){sendMessage = TrueFalse;};
     inline void setStartShutDown(bool TrueFalse){startShutDown = TrueFalse;};
 
+};
+
+class reqHTTP
+{
+  private:
+    String reqGet;
+    String reqPost;
+    String data;
+    
+  public:
+    String get();
+    String post();
+    String dataJson(float humidity,float temperature, float light, float ultra_violet, float sound, float flowmeter, float volume, float nitro_dioxide, float carbon_monoxide);
+    char* convertF2C(float val);
 };
 #endif
