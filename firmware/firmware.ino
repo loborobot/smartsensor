@@ -2,21 +2,14 @@
 //Code by LoboRobotElectronics crew 2014
 //Version 1.0
 
-//#include <Wire.h>
-//#include <RTClib.h>
-#include <LoboRE.h>
-//#include "utils.h"
-#include <GSM.h>// import the GSM library
+#include <Wire.h>
+#include <RTClib.h>
+#include <EEPROM.h>
+#include "Sensors.h"
+//#include "Constants.h"
+//#include <GSM.h>// import the GSM library
 
 
-//#define DHT22_PIN 3 //pin DHT22
-#define DHT11PIN 8 //pin DHT11 Digital
-#define LDR_PIN A0 //pin LDR Analogico
-#define UV_PIN A5 //pin UV Analogico
-#define SOUND_PIN 4 //pin SOUND Analogico
-#define FLOWMETER_PIN 6 //pin CAUDAL Digital
-//#define S900Rx_PIN 2 //pin RxSim900
-//#define S900Tx_PIN 10 //pin TxSim900
 
 //========Star GPRS Sim900========================
 //Sim900 sim900gprs(S900Rx_PIN, S900Tx_PIN);//sim900
@@ -29,44 +22,13 @@
 //char _into[5];//values  
 //int _dato1,_i=0;
 
-//RTC_DS1307 RTC; //objeto RTC
+RTC_DS1307 RTC; //objeto RTC
 
-//=========start DHT11======
-sDHT11 p_dht11;//objeto DHT11
-//=====end DHT1=============
+Sensors p_sensors;//objeto Sensores
 
-//=======start DHT22==========
-//sDHT22 p_DHT22(DHT22_PIN); //object DHT22
-//=======end DHT22============0
-
-//=====start LDR=====
-float valorLDR = 0.0;
-sLDR p_LDR;
-//====end LDR========== 
-
-//=====start UV=======
-float valorUV = 0.0;
-sUV p_UV;
-//========end UV ============
-
-//========start SOUND====
-float valorSOUND =0.0;
-//========end SOUND=======
-
-//========start SOUND====
-
-volatile int NbTopsFan; //measuring the rising edges of the signal
-float Calc;                               
-int hallsensor = 2;    //The pin location of the sensor
- 
-void rpm ()     //This is the function that the interupt calls 
-{ 
-  NbTopsFan++;  //This function measures the rising and falling edge of the hall effect sensors signal
-} 
-//========end SOUND=======
 
 //==============GPRS using GSM.h==========
-
+/*
 // PIN number if necessary
 #define PINNUMBER ""
 
@@ -85,52 +47,76 @@ GSM gsmAccess;
 char server[] = "190.42.34.239"; // the base URL
 char path[] = "/api/devices/"; // the path
 int port = 8000; // the port, 80 for HTTP
+*/
 
+//reqHTTP pHTTP;
 
-reqHTTP pHTTP;
-
-float humidity = 20.43;
-float temperature = 23.12;
-float light = 3.02;
-float ultra_violet = 15.2;
-float sound = 40.56;
-float flowmeter = 7.43;
-float volume = 34.24;
-float nitro_dioxide = 34.23;
-float carbon_monoxide = 47.47;
 
 //============== GPRS end using GSM.h===========
 
+byte valor;
+
 void setup () {  
   Serial.begin(9600);
+  p_sensors.begin();
   //sim900gprs.setupSim900();
 
-  pinMode(hallsensor, INPUT); //initializes digital pin 2 as an input
-  //Serial.begin(9600); //This is the setup function where the serial port is initialised,
-  attachInterrupt(0, rpm, RISING); //and the interrupt is attached
+  
 
 
-
-  //Wire.begin();
+  Wire.begin();
   //startVal();
-  //startRTC();
+  startRTC();
   //Serial.print("Read sensor: "); //DHT11
   //pinMode( ledPin, OUTPUT ); // ledPin how output   
   
+  for (int i = 0; i < 256; i++){
+    EEPROM.write(i, i);
+  }
+  
+  for (int j = 0; j < 256; j++){
+    valor = EEPROM.read(j);
+    Serial.print(j);
+    Serial.print("t");
+    Serial.print(valor, DEC);
+    Serial.println();
+  }
+
+
+  /*startSensorDHT11();
+  startSensorLDR();
+  startSensorUV();
+  startSensorSound();
+  startFlowMeter();
+
+  String jData = pHTTP.dataJson(humidity,temperature,light,ultra_violet,sound,flowmeter,volume,nitro_dioxide,carbon_monoxide);
+  //Serial.println(jData);
+  String rGet = pHTTP.get("/api/devices/");
+  Serial.println(rGet);
+  Serial.println(" ");
+  String rPost = pHTTP.post("/api/devices/");
+  Serial.println(rPost);
+  Serial.println(" ");
+  String rDataJson = pHTTP.getDataJson();
+  Serial.println(rDataJson);
+
+  //generate the MD5 hash for our string
+  char* Password = "123";
+  unsigned char* hash=MD5::make_hash(Password);
+  Serial.println(Password);
+  //generate the digest (hex encoding) of our hash
+  char *md5str = MD5::make_digest(hash, 16);
+  //print it on our serial monitor
+  Serial.println(" ");
+  Serial.print("Encriptado MD5: ");
+  Serial.println(md5str);*/
 
 
 //============GPRS USING GSM.h=========
-
-
-  //String rGet = pHTTP.get();
-  //Serial.println(rGet);
-  //String jData = pHTTP.dataJson(humidity,temperature,light,ultra_violet,sound,flowmeter,volume,nitro_dioxide,carbon_monoxide);
-  //Serial.println(jData);
-  
-  
   // initialize serial communications
   //Serial.begin(9600);
   
+  /*
   Serial.println("Starting Arduino web client");
   // connection state
   boolean notConnected = true;
@@ -150,14 +136,20 @@ void setup () {
   }
 
   Serial.println("connecting..");
+  
+  //Get IP.
+  IPAddress LocalIP = gprs.getIPAddress();
+  Serial.println("Server IP address=");
+  Serial.println(LocalIP);
 
   // if you get a connection, report back via serial:
   if (client.connect(server, port))
   {
     Serial.println("connected");
     // Make a HTTP request:
-    client.println(pHTTP.get());
-    
+    client.println(pHTTP.post("/api/devices/"));
+    client.println(pHTTP.getDataJson());
+    */
     
     //request POST
     /*client.println("POST /api/devices/ HTTP/1.0");
@@ -175,13 +167,14 @@ void setup () {
     client.println("Accept: application/json");
     client.println("Authorization: Basic ZmluY3l0OmZpbmN5dA==");
     client.println();*/
+  /*
   } 
   else
   {
     // if you didn't get a connection to the server:
     Serial.println("connection failed");
   }
-  
+  */
   //============END GPRS USING GSM.h=========
 
   
@@ -194,21 +187,24 @@ void loop () {
   //resultDisplay();
   //startSim900();
 
-  
-  //startSensorDHT22();
+
   /*startSensorDHT11();
   startSensorLDR();
   startSensorUV();
   startSensorSound();
   startFlowMeter();*/
-  //displayRTC(); 
-    
-    
+  
+  p_sensors.execute();
+  displayRTC(); 
+      
+      
+  
   
   //============GPRS USING GSM.h========= 
   /// if there are incoming bytes available 
   // from the server, read them and print them:
   
+  /*
   if (client.available())
   {
     char c = client.read();
@@ -226,7 +222,6 @@ void loop () {
     for(;;)
       ;
   }
-  
+  */
   //============END GPRS USING GSM.h=========
-    
 }

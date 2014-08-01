@@ -49,22 +49,21 @@ void startSensorDHT22()
       break;
   }
 }
-*/
+
 
 void startSensorDHT11()
 {
   //Serial.println("\n");
 
-  int chk = p_dht11.read(DHT11PIN);
-
+  int chk = p_sensors.read(DHT11PIN);
   //Serial.print("Read sensor: ");
   switch (chk)
   {
     case 0: //Serial.println("OK");
             Serial.print("RH: ");
-            Serial.print(((float)p_dht11.humidity)/10, 2);Serial.print(" %");
+            Serial.print(((float)p_sensors.humidity11)/10, 2);Serial.print(" %");
             Serial.print(" Temperature: ");
-            Serial.print(((float)p_dht11.temperature)/10, 2);Serial.println(" (oC)");
+            Serial.print(((float)p_sensors.temperature11)/10, 2);Serial.println(" (oC)");
             delay(2000);break;
     case -1: Serial.println("Checksum error"); break;
     case -2: Serial.println("Time out error"); break;
@@ -72,45 +71,46 @@ void startSensorDHT11()
   }
 }
 
-
 void startSensorLDR()
 {
-  valorLDR = p_LDR.readDataLDR(LDR_PIN);
-  if(valorLDR == -2)
+  light = p_sensors.readDataLDR(LDR_PIN);
+  if(light == -2)
   {
     Serial.print("LDR (IN): ");
-    Serial.print(p_LDR.getValueLDR());
+    Serial.print(p_sensors.getValueLDR());
     Serial.print (" LDR (OUT): Maxima ilumicacion");
   }
   else
   {  
     Serial.print("LDR (IN): ");
-    Serial.print(p_LDR.getValueLDR());
+    Serial.print(p_sensors.getValueLDR());
     Serial.print (" LDR (OUT): ");
-    Serial.print(valorLDR);  
+    Serial.print(light);  
     Serial.println(" lux");
   }
   delay(1000);
 }
 
+
 void startSensorUV()
 {
-  valorUV = p_UV.readDataUV(UV_PIN);
+  ultra_violet = p_sensors.readDataUV(UV_PIN);
   Serial.print ("UV (IN): ");
-  Serial.print(p_UV.getValueUV());
+  Serial.print(p_sensors.getValueUV());
   Serial.print (" UV (OUT): ");
-  Serial.print(valorUV); 
+  Serial.print(ultra_violet); 
   Serial.println(" UVI");
   delay(1000);  
 }
 
+
 void startSensorSound()
 {
-  valorSOUND = analogRead(SOUND_PIN);
+  sound = analogRead(SOUND_PIN);
   //valorSOUND = constrain(valorSOUND, 0, 100); // value normalize
-  valorSOUND = map(valorSOUND, 0, 1023, 0, 100);
+  sound = map(sound, 0, 1023, 0, 100);
   Serial.print("SOUND: ");
-  Serial.println(valorSOUND);
+  Serial.println(sound);
   delay(250);
 }
 
@@ -121,9 +121,12 @@ void startFlowMeter()
   //sei();      //Enables interrupts
   delay(1000);   //Wait 1 second
   //cli();      //Disable interrupts
-  Calc = ((NbTopsFan * 60 / 5.5)/60); //(Pulse frequency x 60) / 5.5Q, = flow rate in L/hour 
+  flowmeter = ((NbTopsFan * 60 / 5.5)/60); //(Pulse frequency x 60) / 5.5Q, = flow rate in L/hour 
+  volume = ((flowmeter * 60)/1000);
   //Calc = (Calc / 60);
   //Serial.print (Calc, DEC); //Prints the number calculated above
-  Serial.print((float)Calc, 2);
+  Serial.print((float)flowmeter, 2);
   Serial.print (" L/min\r\n"); //Prints "L/hour" and returns a  new line
-}
+  Serial.print((float)volume, 2);
+  Serial.print (" m3/min\r\n"); //Prints "L/hour" and returns a  new line
+}*/

@@ -1,5 +1,6 @@
-/*void startRTC()
+void startRTC()
 {
+  //Serial.begin(57600);
   RTC.begin();
   if (!RTC.isrunning()) 
     {
@@ -26,4 +27,4 @@ void displayRTC()
     Serial.print(':');
     Serial.print(now.second(), DEC);
     Serial.println();
-}*/
+}
