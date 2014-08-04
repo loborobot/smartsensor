@@ -1,5 +1,5 @@
 //#define DHT22_PIN 3 //pin DHT22
-#define DHT11PIN 8 //pin DHT11 Digital
+#define DHT_PIN 8 //pin DHT11 Digital
 #define LDR_PIN A0 //pin LDR Analogico
 #define UV_PIN A5 //pin UV Analogico
 #define SOUND_PIN 4 //pin SOUND Analogico
