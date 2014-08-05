@@ -1,7 +1,10 @@
+//#include <Wire.h>
 #include "Constants.h"
 #include "Sensors.h"
+#include "Resources.h"
 
 Sensors p_sens;
+Resources p_resc;
 
 void rpm(){     //This is the function that the interupt calls 
   p_sens.NbTopsFan++;  //This function measures the rising and falling edge of the hall effect sensors signal
@@ -9,11 +12,10 @@ void rpm(){     //This is the function that the interupt calls
 
 
 void Sensors::begin(){ //init variables
-  
+  p_resc.begin();
   pinMode(FLOWMETER_PIN, INPUT); //initializes digital pin 2 as an input -flowmeter
   attachInterrupt(0,rpm,RISING); //and the interrupt is attached - flowmeter
-  
-  
+    
   // calibrate during the first five seconds 
   while (millis() < 5000) {
     _valueLDR = analogRead(LDR_PIN);
@@ -26,15 +28,21 @@ void Sensors::begin(){ //init variables
   
 }
 void Sensors::execute(){ // init program
-  updateSensor();  
+  p_resc.RTCread(); 
+  uint8_t flat = updateSensor();
+  while(flat == -1){updateSensor();}
 }
 
-void Sensors::updateSensor(){
+uint8_t Sensors::updateSensor(){
   uint8_t chk = readDataDHT();// temperature and humidity
   uint8_t light = readDataLDR(); // LDR
   uint8_t ultra_violet = readDataUV(); // UV
   uint8_t sound = readDataSound(); // sound
   uint8_t flowvol= readDataFlowmeter(); // flowmeter and volume
+  
+  if(chk != 0 && light != 0 && ultra_violet != 0 && sound != 0 && flowvol != 0) { return -1;}
+  else {return 0;}
+ 
 }
 
 uint8_t Sensors::readDataDHT() // temperature and humidity function
@@ -101,7 +109,8 @@ uint8_t Sensors::readDataLDR() // LDR function
 {
   _valueLDR = map(analogRead(LDR_PIN), _valLDRmin, _valLDRmax, 0, 255);
   _valueLDR = constrain(_valueLDR, 0, 255);
-  return 0;
+  if (_valueLDR >= 0.0) return 0;
+  else return -1;
   
   /*if(_valueLDR < 5) return 0.0;
   if(_valueLDR>=5 && _valueLDR <= 36){
