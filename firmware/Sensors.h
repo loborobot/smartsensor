@@ -9,7 +9,7 @@ class Sensors
 public:
   void begin();
   void execute();
-  void updateSensor();
+  uint8_t updateSensor();
   
   uint8_t readDataDHT();
   uint8_t readDataLDR();
