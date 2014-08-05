@@ -8,6 +8,29 @@
 //#define S900Tx_PIN 10 //pin TxSim900
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // FUNCTIONS FOR COMPILE ERRORS
 void clearBuffer();
 void appendToBuffer(char c);
