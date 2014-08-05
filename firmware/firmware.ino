@@ -4,8 +4,9 @@
 
 #include <Wire.h>
 #include <RTClib.h>
-#include <EEPROM.h>
+//#include <EEPROM.h>
 #include "Sensors.h"
+//#include "Resources.h"
 //#include "Constants.h"
 //#include <GSM.h>// import the GSM library
 
@@ -22,7 +23,7 @@
 //char _into[5];//values  
 //int _dato1,_i=0;
 
-RTC_DS1307 RTC; //objeto RTC
+//RTC_DS1307 RTC; //objeto RTC
 
 Sensors p_sensors;//objeto Sensores
 
@@ -54,23 +55,18 @@ int port = 8000; // the port, 80 for HTTP
 
 //============== GPRS end using GSM.h===========
 
-byte valor;
+//byte valor; //eeprom
 
 void setup () {  
   Serial.begin(9600);
   p_sensors.begin();
-  //sim900gprs.setupSim900();
-
-  
-
-
-  Wire.begin();
+  //sim900gprs.setupSim900();  
+ 
   //startVal();
-  startRTC();
   //Serial.print("Read sensor: "); //DHT11
   //pinMode( ledPin, OUTPUT ); // ledPin how output   
   
-  for (int i = 0; i < 256; i++){
+ /* for (int i = 0; i < 256; i++){
     EEPROM.write(i, i);
   }
   
@@ -81,7 +77,7 @@ void setup () {
     Serial.print(valor, DEC);
     Serial.println();
   }
-
+*/
 
   /*startSensorDHT11();
   startSensorLDR();
@@ -183,8 +179,9 @@ void setup () {
 
 
 void loop () {
+  p_sensors.execute();
+  
   //Serial.println(" ");
-  //resultDisplay();
   //startSim900();
 
 
@@ -193,12 +190,10 @@ void loop () {
   startSensorUV();
   startSensorSound();
   startFlowMeter();*/
+ 
   
-  p_sensors.execute();
-  displayRTC(); 
-      
-      
-  
+
+
   
   //============GPRS USING GSM.h========= 
   /// if there are incoming bytes available 
@@ -225,3 +220,5 @@ void loop () {
   */
   //============END GPRS USING GSM.h=========
 }
+
+
