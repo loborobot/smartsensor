@@ -2,14 +2,15 @@
 //Code by LoboRobotElectronics crew 2014
 //Version 1.0
 
-#include <Wire.h>
-#include <RTClib.h>
+//#include <Wire.h>
+//#include <RTClib.h>
+//#include <GSM.h>
 //#include <EEPROM.h>
 #include "Sensors.h"
 //#include "Resources.h"
 //#include "Constants.h"
-//#include <GSM.h>// import the GSM library
-
+#include <SD.h>
+#include <SoftwareSerial.h>
 
 
 //========Star GPRS Sim900========================
@@ -25,7 +26,7 @@
 
 //RTC_DS1307 RTC; //objeto RTC
 
-Sensors p_sensors;//objeto Sensores
+Sensors psensors__;//objeto Sensores
 
 
 //==============GPRS using GSM.h==========
@@ -49,17 +50,87 @@ char server[] = "190.42.34.239"; // the base URL
 char path[] = "/api/devices/"; // the path
 int port = 8000; // the port, 80 for HTTP
 */
-
-//reqHTTP pHTTP;
-
-
 //============== GPRS end using GSM.h===========
 
 //byte valor; //eeprom
 
+File myFile;
+
+SoftwareSerial mySerial(10,11); // change these paramters depending on your Arduino GSM Shield
+
 void setup () {  
   Serial.begin(9600);
-  p_sensors.begin();
+   while (!Serial) {
+    ; // wait for serial port to connect. Needed for Leonardo only
+  }
+
+
+  Serial.print("Initializing SD card...");
+  // On the Ethernet Shield, CS is pin 4. It's set as an output by default.
+  // Note that even if it's not used as the CS pin, the hardware SS pin 
+  // (10 on most Arduino boards, 53 on the Mega) must be left as an output 
+  // or the SD library functions will not work. 
+  pinMode(10, OUTPUT);
+
+  if (!SD.begin(4)) {
+    Serial.println("initialization failed!");
+    return;
+  }
+  Serial.println("initialization done.");
+
+  if (SD.exists("example.txt")) {
+    Serial.println("example.txt exists.");
+  }
+  else {
+    Serial.println("example.txt doesn't exist.");
+  }
+
+  // open a new file and immediately close it:
+  Serial.println("Creating example.txt...");
+  myFile = SD.open("example.txt", FILE_WRITE);
+  //myFile.close();
+
+
+  if (myFile) {
+    Serial.print("Writing to test.txt...");
+    myFile.println("testing 1, 2, 3.");
+	// close the file:
+    myFile.close();
+    Serial.println("done.");
+  } else {
+    // if the file didn't open, print an error:
+    Serial.println("error opening test.txt");
+  }
+  
+  // re-open the file for reading:
+  myFile = SD.open("example.txt");
+  if (myFile) {
+    Serial.println("example.txt:");
+    
+    // read from the file until there's nothing else in it:
+    while (myFile.available()) {
+    	Serial.write(myFile.read());
+    }
+    // close the file:
+    myFile.close();
+  } else {
+  	// if the file didn't open, print an error:
+    Serial.println("error opening test.txt");
+  }
+
+
+  mySerial.begin(19200);
+  mySerial.print("hola");
+  
+
+  //psensors__.begin();
+  
+  //mySerial.begin(9600);
+  //Serial.println("Start PIN 1, 2");
+  //mySerial.println("Start PIN 3, 4");
+  
+  
+  
   //sim900gprs.setupSim900();  
  
   //startVal();
@@ -177,23 +248,14 @@ void setup () {
 }
 
 
-
 void loop () {
-  p_sensors.execute();
-  
-  //Serial.println(" ");
-  //startSim900();
-
-
-  /*startSensorDHT11();
-  startSensorLDR();
-  startSensorUV();
-  startSensorSound();
-  startFlowMeter();*/
+  //psensors__.execute();
  
-  
-
-
+  if (mySerial.available())
+    Serial.write(mySerial.read());
+  if (Serial.available())
+    mySerial.write(Serial.read());
+    
   
   //============GPRS USING GSM.h========= 
   /// if there are incoming bytes available 
