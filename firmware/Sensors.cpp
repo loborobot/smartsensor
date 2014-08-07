@@ -2,17 +2,20 @@
 #include "Constants.h"
 #include "Sensors.h"
 #include "Resources.h"
+//#include "Connection.h"
 
-Sensors p_sens;
-Resources p_resc;
+Sensors psens__;
+Resources presc__;
+//Connection pconn__;
 
 void rpm(){     //This is the function that the interupt calls 
-  p_sens.NbTopsFan++;  //This function measures the rising and falling edge of the hall effect sensors signal
+  psens__.NbTopsFan++;  //This function measures the rising and falling edge of the hall effect sensors signal
 } 
 
 
 void Sensors::begin(){ //init variables
-  p_resc.begin();
+  //presc__.begin();
+  //pconn__.begin();
   pinMode(FLOWMETER_PIN, INPUT); //initializes digital pin 2 as an input -flowmeter
   attachInterrupt(0,rpm,RISING); //and the interrupt is attached - flowmeter
     
@@ -23,14 +26,17 @@ void Sensors::begin(){ //init variables
     if (_valueLDR > _valLDRmax) {_valLDRmax = _valueLDR;}
     // record the minimum sensor value
     if (_valueLDR < _valLDRmin) {_valLDRmin = _valueLDR;}
-  }
-  
-  
+  }  
 }
+
 void Sensors::execute(){ // init program
-  p_resc.RTCread(); 
+  //presc__.RTCread(); 
   uint8_t flat = updateSensor();
   while(flat == -1){updateSensor();}
+  if(flat == 0){
+    //uint8_t fconn = pconn__.send();
+    //if(fconn == 0){pconn__.read();}
+  }
 }
 
 uint8_t Sensors::updateSensor(){

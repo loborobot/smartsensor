@@ -1,1 +1,0 @@
-This is a fork of Lobo Robot Electronics library for Arduino.
