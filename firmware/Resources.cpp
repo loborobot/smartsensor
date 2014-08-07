@@ -1,4 +1,4 @@
-#include <Wire.h>
+/*#include <Wire.h>
 #include <RTClib.h>
 #include "Constants.h"
 #include "Resources.h"
@@ -8,7 +8,7 @@ RTC_DS1307 RTC;
 void Resources::begin(){ //init variables
   Wire.begin();
   RTC.begin();
-  if (!RTC.isrunning()) {RTC.adjust(DateTime(__DATE__, __TIME__));}
+  if (RTC.isrunning()) {RTC.adjust(DateTime(__DATE__, __TIME__));}
 }
 
 void Resources::execute(){ // init program
@@ -33,5 +33,5 @@ void Resources::RTCread(){
     delay(950); 
 }
 
-
+*/
 
