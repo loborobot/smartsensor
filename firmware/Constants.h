@@ -9,13 +9,44 @@
 
 
 
+// PIN number if necessary
+#define PINNUMBER ""
+
+// APN information obrained from your network provider
+#define GPRS_APN       "ba.amx" // replace with your GPRS APN
+#define GPRS_LOGIN     "amx"    // replace with your GPRS login
+#define GPRS_PASSWORD  "amx" // replace with your GPRS password
 
 
+static char* HTTPGET[4]={
+                  "190.42.34.239",
+                  "GET //api/devices/ HTTP/1.0 \n",
+                  "Accept: application/json \n",
+                  "Authorization: Basic "  
+                  };
 
+static char* HTTPPOST[6]={
+                  "190.42.34.239",
+                  "POST /api/devices/ HTTP/1.0 \n", 
+                  "Content-Type: application/json \n", 
+                  "Accept: application/json \n", 
+                  "Authorization: Basic ", 
+                  "Content-Length: ", 
+                  };
 
-
-
-
+// Data JSON structure                  
+static char* JSONREQ[10]={
+                  "{\"temperature\":\"",
+                  "\",\"humidity\":\"", 
+                  "\",\"light\":\"",
+                  "\",\"ultra_violet\":\"",
+                  "\",\"sound\":\"",
+                  "\",\"flowmeter\":\"", 
+                  "\",\"volume\":\"", 
+                  "\",\"nitro_dioxide\":\"", 
+                  "\",\"carbon_monoxide\":\"", 
+                  "\"}"
+                  };
 
 
 
