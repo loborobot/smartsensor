@@ -8,13 +8,14 @@
 class Connection
 {
 public:
+  boolean notConnected;
+  boolean statusConn;
+  
   void begin();
   uint8_t send();
   void read();
   
 private:
-  boolean notConnected;
-
 };
 #endif
 
