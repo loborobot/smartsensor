@@ -1,13 +1,15 @@
-/*#include <GSM.h>
+//#include <GSM.h>
 #include "Connection.h"
 #include "Constants.h"
 
 
-GSMClient client;
-GPRS gprs;
-GSM gsmAccess;
+//GSMClient client;
+//GPRS gprs;
+//GSM gsmAccess;
 
 void Connection::begin(){ //init variables
+  statusConn = OFFGPRS;
+  /*
   Serial.println("Starting Arduino web client");
   notConnected = true;
   
@@ -26,9 +28,10 @@ void Connection::begin(){ //init variables
     }
   }
 
-  Serial.println("connecting..");
+  Serial.println("connecting..");*/
 }
 
+/*
 uint8_t Connection::send(){
   if(!notConnected){
     if (client.connect(HTTPGET[0], 8000))
