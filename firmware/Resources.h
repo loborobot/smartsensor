@@ -12,7 +12,8 @@ public:
   void execute();
   
   void RTCread();
-
+  void writeSD();
+  
 private:
   
 
