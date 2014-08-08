@@ -14,7 +14,7 @@ void rpm(){     //This is the function that the interupt calls
 
 
 void Sensors::begin(){ //init variables
-  //presc__.begin();
+  presc__.begin();
   //pconn__.begin();
   pinMode(FLOWMETER_PIN, INPUT); //initializes digital pin 2 as an input -flowmeter
   attachInterrupt(0,rpm,RISING); //and the interrupt is attached - flowmeter
@@ -30,13 +30,18 @@ void Sensors::begin(){ //init variables
 }
 
 void Sensors::execute(){ // init program
-  //presc__.RTCread(); 
+  Serial.println("ejecutando.");
   uint8_t flat = updateSensor();
   while(flat == -1){updateSensor();}
   if(flat == 0){
+    Serial.println("llamando.");
     //uint8_t fconn = pconn__.send();
     //if(fconn == 0){pconn__.read();}
+    presc__.RTCread(); 
+    presc__.writeSD();
   }
+  Serial.println("salio write sd");
+  
 }
 
 uint8_t Sensors::updateSensor(){
@@ -44,9 +49,11 @@ uint8_t Sensors::updateSensor(){
   uint8_t light = readDataLDR(); // LDR
   uint8_t ultra_violet = readDataUV(); // UV
   uint8_t sound = readDataSound(); // sound
-  uint8_t flowvol= readDataFlowmeter(); // flowmeter and volume
+  uint8_t flowvol = readDataFlowmeter(); // flowmeter and volume
+  uint8_t co2f = readDataCO2();
+  uint8_t no2f = readDataNO2();
   
-  if(chk != 0 && light != 0 && ultra_violet != 0 && sound != 0 && flowvol != 0) { return -1;}
+  if(chk != 0 && light != 0 && ultra_violet != 0 && sound != 0 && flowvol != 0 && co2f != 0 && no2f != 0) { return -1;}
   else {return 0;}
  
 }
@@ -105,6 +112,9 @@ uint8_t Sensors::readDataDHT() // temperature and humidity function
 	_humidity    = (bits[0] + bits[1])/10; 
 	_temperature = (bits[2] + bits[3])/10; 
 
+        //_valSensor[1] = convertF2C((bits[0] + bits[1])/10); 
+	//_valSensor[0] = convertF2C((bits[2] + bits[3])/10); 
+
 	uint8_t sum = bits[0] + bits[1] + bits[2] + bits[3];  
 
 	if (bits[4] != sum) return -1; // -1 : checksum error
@@ -113,8 +123,10 @@ uint8_t Sensors::readDataDHT() // temperature and humidity function
 
 uint8_t Sensors::readDataLDR() // LDR function
 {
+  //_valueLDR = map(analogRead(LDR_PIN), _valLDRmin, _valLDRmax, 0, 255);
   _valueLDR = map(analogRead(LDR_PIN), _valLDRmin, _valLDRmax, 0, 255);
   _valueLDR = constrain(_valueLDR, 0, 255);
+  //_valSensor[2] = convertF2C(_valueLDR);
   if (_valueLDR >= 0.0) return 0;
   else return -1;
   
@@ -153,12 +165,14 @@ uint8_t Sensors::readDataLDR() // LDR function
 
 uint8_t Sensors::readDataUV(){ // UV function
   _valueUV = map(analogRead(UV_PIN), 0, 30, 0, 15); // read pinUV
+  //_valSensor[3] = convertF2C(_valueUV);
   if (_valueUV >= 0.0) return 0;
   else return -1;
 }
 
 uint8_t Sensors::readDataSound(){
  _sound = map(analogRead(SOUND_PIN), 0, 1023, 0, 100); //Sound
+ //_valSensor[4] = convertF2C(_sound);
  if (_sound >= 0.0) return 0;
  else return -1;
 }
@@ -170,6 +184,25 @@ uint8_t Sensors::readDataFlowmeter(){
  //cli();      //Disable interrupts
  _flowmeter = ((NbTopsFan * 60 / 5.5)/60); //(Pulse frequency x 60) / 5.5Q, = flow rate in L/hour 
  _volume = ((_flowmeter * 60)/1000); // m3/min
+ //_valSensor[5] = convertF2C(_flowmeter);
+ //_valSensor[6] = convertF2C(_volume);
  if (_flowmeter >= 0.0 && _volume >= 0.0) return 0;
  else return -1;
+}
+
+uint8_t Sensors::readDataCO2(){
+  _CO2 = 12.3;
+  //_valSensor[7] = convertF2C(_co2);
+  return 0;
+}
+
+uint8_t Sensors::readDataNO2(){
+  _NO2 = 48.2;
+  //_valSensor[8] = convertF2C(_no2);
+  return 0;
+}
+
+char* Sensors::convertF2C(float val){
+  static char dtostrfbuffer[10];
+  return dtostrf(val,5, 2, dtostrfbuffer);
 }
