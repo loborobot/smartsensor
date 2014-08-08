@@ -7,7 +7,8 @@
 //#define S900Rx_PIN 2 //pin RxSim900
 //#define S900Tx_PIN 10 //pin TxSim900
 
-
+#define ONGPRS true
+#define OFFGPRS false
 
 // PIN number if necessary
 #define PINNUMBER ""
@@ -48,7 +49,17 @@ static char* JSONREQ[10]={
                   "\"}"
                   };
 
-
+/*static char* DATAB[9]={
+                  "Temperature: ",
+                  "Humidity: ",
+                  "Light: ",
+                  "Ultra violet: ",
+                  "Sound: ",
+                  "Flowmeter: ",
+                  "Volume: ",
+                  "Carbon Monxide: ",
+                  "Nitrogen Dioxide: ", 
+                };*/
 
 
 
