@@ -8,14 +8,18 @@
 class Connection
 {
 public:
-  boolean notConnected;
   boolean statusConn;
+  boolean modeAT;
   
   void begin();
-  uint8_t send();
-  void read();
+  void activeModeAT();
+  void setConnection();
+  boolean verifyConnection();
+  boolean checkConnection();
+  char* getMAC();
   
 private:
 };
 #endif
+
 

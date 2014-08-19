@@ -21,6 +21,7 @@ public:
   float _NO2;
   
   //char* _valSensor[9];
+  boolean dataUpdate;
   
   void begin();
   void execute();

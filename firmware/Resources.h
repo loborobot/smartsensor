@@ -8,11 +8,16 @@
 class Resources
 {
 public:
+  String data;
+  
   void begin();
-  void execute();
+  //void execute();
   
   void RTCread();
   void writeSD();
+  void sendQuery();
+  void sendData();
+  int strucData();
   
 private:
   

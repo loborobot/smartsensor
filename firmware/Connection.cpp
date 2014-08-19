@@ -1,74 +1,80 @@
-//#include <GSM.h>
 #include "Connection.h"
 #include "Constants.h"
 
-
-//GSMClient client;
-//GPRS gprs;
-//GSM gsmAccess;
-
 void Connection::begin(){ //init variables
-  statusConn = OFFGPRS;
-  /*
-  Serial.println("Starting Arduino web client");
-  notConnected = true;
+  statusConn = STATUS_OFFCONNECTION;
+  activeModeAT();
+}
+
+void Connection::activeModeAT(){
+  Serial.begin(115200);
+  Serial1.begin(115200);
+ 
+  pinMode(SCAPE_PIN, OUTPUT);
+  digitalWrite(SCAPE_PIN, !SCAPE_PIN_ACTIVE);
   
-  while(notConnected)
-  {
-    if((gsmAccess.begin(PINNUMBER)==GSM_READY) &
-        (gprs.attachGPRS(GPRS_APN, GPRS_LOGIN, GPRS_PASSWORD)==GPRS_READY)){
-          IPAddress LocalIP = gprs.getIPAddress();
-          Serial.print("Server IP address="); Serial.println(LocalIP);
-          notConnected = false;
-        }
-    else
-    {
-      Serial.println("Not connected");
-      delay(1000);
+  digitalWrite(SCAPE_PIN, SCAPE_PIN_ACTIVE);
+  // according to user manual, delay should be > Tes time, so we plus 50ms here
+  delay(TES_TIME_IN_MS+50);
+  digitalWrite(SCAPE_PIN, !SCAPE_PIN_ACTIVE);
+  
+  modeAT = MODE_AT_ACTIVE;
+  Serial.println("Modo AT actiado");
+  if(modeAT) setConnection();
+  else {
+    Serial1.write("at+out_trans=0\r\n");
+    modeAT = false;
+  }
+
+}
+
+void Connection::setConnection(){
+  if(modeAT){
+    for(int i=0; i<13; i++){
+      Serial1.write(commands_wifi_client[i]); 
+    }
+    Serial1.write("at+out_trans=0\r\n");
+    statusConn = STATUS_ONCONNECTION;
+   }
+  else {
+    modeAT = false;
+    statusConn = STATUS_OFFCONNECTION;
+    activeModeAT();
+  }
+}
+
+boolean Connection::verifyConnection(){
+  activeModeAT();
+  if(modeAT){
+    Serial1.write("at+wifi_ConState=?\r\n");
+    Serial1.flush();
+    Serial1.setTimeout(100);
+    if(!Serial1.find("Connected\r\n")){
+      Serial1.write("at+out_trans=0\r\n");
+      return false;
+    }
+    else{
+      Serial1.write("at+out_trans=0\r\n");
+      return true;
     }
   }
-
-  Serial.println("connecting..");*/
 }
 
-/*
-uint8_t Connection::send(){
-  if(!notConnected){
-    if (client.connect(HTTPGET[0], 8000))
-      {
-        Serial.println("connected");
-        client.println("GET /api/devices/ HTTP/1.0");
-        client.println("Accept: application/json");
-        client.println("Authorization: Basic ZmluY3l0OmZpbmN5dA==");
-        client.println();
-        
-        return 0;
-      } 
-      else
-      {
-        Serial.println("connection failed");
-        return -1;
-      }
+char* Connection::getMAC(){
+  char* mac;
+  activeModeAT();
+  if(modeAT){
+    Serial1.write("at+Get_MAC=?\r\n");
+    Serial1.flush();
+    Serial1.setTimeout(100);
+    if(Serial1.available()){
+      mac = (char*)Serial1.read();
+      Serial1.write("at+out_trans=0\r\n");
+      return mac;
+    }
+    else{
+      Serial1.write("at+out_trans=0\r\n");
+      return mac;
+    }
   }
 }
-
-void Connection::read(){
-  if (client.available())
-  {
-    char c = client.read();
-    Serial.print(c);
-  }
-
-  // if the server's disconnected, stop the client:
-  if (!client.available() && !client.connected())
-  {
-    Serial.println();
-    Serial.println("disconnecting.");
-    client.stop();
-
-    // do nothing forevermore:
-    for(;;)
-      ;
-  }
-}
-*/

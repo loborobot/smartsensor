@@ -2,11 +2,11 @@
 #include "Constants.h"
 #include "Sensors.h"
 #include "Resources.h"
-//#include "Connection.h"
+#include "Connection.h"
 
 Sensors psens__;
 Resources presc__;
-//Connection pconn__;
+Connection pconn__;
 
 void rpm(){     //This is the function that the interupt calls 
   psens__.NbTopsFan++;  //This function measures the rising and falling edge of the hall effect sensors signal
@@ -30,18 +30,16 @@ void Sensors::begin(){ //init variables
 }
 
 void Sensors::execute(){ // init program
-  Serial.println("ejecutando.");
+  //Serial.println("ejecutando.");
   uint8_t flat = updateSensor();
   while(flat == -1){updateSensor();}
   if(flat == 0){
-    Serial.println("llamando.");
-    //uint8_t fconn = pconn__.send();
-    //if(fconn == 0){pconn__.read();}
+    //Serial.println("llamando.");
     presc__.RTCread(); 
-    presc__.writeSD();
+    if(dataUpdate==true && pconn__.statusConn==true){presc__.sendQuery();}
+    else presc__.writeSD();
   }
-  Serial.println("salio write sd");
-  
+  //Serial.println("salio write sd"); 
 }
 
 uint8_t Sensors::updateSensor(){
@@ -54,7 +52,10 @@ uint8_t Sensors::updateSensor(){
   uint8_t no2f = readDataNO2();
   
   if(chk != 0 && light != 0 && ultra_violet != 0 && sound != 0 && flowvol != 0 && co2f != 0 && no2f != 0) { return -1;}
-  else {return 0;}
+  else {
+    dataUpdate = true;
+    return 0;
+  }
  
 }
 
@@ -123,10 +124,9 @@ uint8_t Sensors::readDataDHT() // temperature and humidity function
 
 uint8_t Sensors::readDataLDR() // LDR function
 {
+  _valueLDR = analogRead(LDR_PIN);
   //_valueLDR = map(analogRead(LDR_PIN), _valLDRmin, _valLDRmax, 0, 255);
-  _valueLDR = map(analogRead(LDR_PIN), _valLDRmin, _valLDRmax, 0, 255);
-  _valueLDR = constrain(_valueLDR, 0, 255);
-  //_valSensor[2] = convertF2C(_valueLDR);
+  //_valueLDR = constrain(_valueLDR, 0, 255);
   if (_valueLDR >= 0.0) return 0;
   else return -1;
   
@@ -164,15 +164,15 @@ uint8_t Sensors::readDataLDR() // LDR function
 }
 
 uint8_t Sensors::readDataUV(){ // UV function
-  _valueUV = map(analogRead(UV_PIN), 0, 30, 0, 15); // read pinUV
-  //_valSensor[3] = convertF2C(_valueUV);
+  _valueUV = analogRead(UV_PIN);
+  //_valueUV = map(analogRead(UV_PIN), 0, 30, 0, 15); // read pinUV
   if (_valueUV >= 0.0) return 0;
   else return -1;
 }
 
 uint8_t Sensors::readDataSound(){
- _sound = map(analogRead(SOUND_PIN), 0, 1023, 0, 100); //Sound
- //_valSensor[4] = convertF2C(_sound);
+  _sound = analogRead(SOUND_PIN);
+ // _sound = map(analogRead(SOUND_PIN), 0, 1023, 0, 100); //Sound
  if (_sound >= 0.0) return 0;
  else return -1;
 }
