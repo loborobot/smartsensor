@@ -5,6 +5,7 @@
 #define SOUND_PIN 4 //pin SOUND Analogico
 #define FLOWMETER_PIN 2 //pin CAUDAL Digital
 
+/*
 #define SCAPE_PIN  21
 #define SCAPE_PIN_ACTIVE  LOW
 // default Tes time should be 100 ms
@@ -12,6 +13,7 @@
 // defualt Tpt time should be 10ms
 #define TPT_TIME_IN_MS	10
 #define MODE_AT_ACTIVE  true
+*/
 
 #define STATUS_OFFCONNECTION false
 #define STATUS_ONCONNECTION true

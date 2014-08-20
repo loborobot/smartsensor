@@ -7,21 +7,14 @@
 
 class Resources
 {
-public:
-  String data;
-  
+public:  
   void begin();
   //void execute();
   
   void RTCread();
   void writeSD();
-  void sendQuery();
-  void sendData();
-  int strucData();
   
 private:
-  
-
 };
 
 extern Resources RSCS;

@@ -5,8 +5,8 @@
 #include <Wire.h>
 #include <RTClib.h>
 #include <SD.h>
+#include <WiFiRM04.h>
 #include "Sensors.h"
-
 
 Sensors psensors__;//objeto Sensores
 
@@ -34,33 +34,19 @@ int port = 8000; // the port, 80 for HTTP
 */
 //============== GPRS end using GSM.h===========
 
-//byte valor; //eeprom
-
-//File myFile;
-
 void setup () {  
-  Serial.begin(9600);
-   while (!Serial) {
+  Serial.begin(115200);//9600
+  Serial1.begin(115200);//9600
+  while (!Serial) {
     ; // wait for serial port to connect. Needed for Leonardo only
   }
   psensors__.begin();
+  Serial.println("END setup");
 }
 
 
 void loop () {
-  
-  Serial.println("Loop");
+  delay(10000);//10 seconds delay
   psensors__.execute();
-  
-  if (Serial1.available()) {
-    Serial.write(Serial1.read());
-    //if(Serial1.find("Connected")){
-      //Serial.println("activado wifi");
-    //}
-  }
-  
-  // read from port 0, send to port 1:
-  if (Serial.available()) {
-    Serial1.write(Serial.read()); 
-  }
+  Serial.println("Loop");
 }

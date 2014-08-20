@@ -14,11 +14,14 @@ void rpm(){     //This is the function that the interupt calls
 
 
 void Sensors::begin(){ //init variables
-  presc__.begin();
-  //pconn__.begin();
+  Serial.println("Start Sensonrs Config"); 
+  pconn__.begin();
+  presc__.begin(); 
+  
   pinMode(FLOWMETER_PIN, INPUT); //initializes digital pin 2 as an input -flowmeter
   attachInterrupt(0,rpm,RISING); //and the interrupt is attached - flowmeter
     
+  
   // calibrate during the first five seconds 
   while (millis() < 5000) {
     _valueLDR = analogRead(LDR_PIN);
@@ -26,20 +29,22 @@ void Sensors::begin(){ //init variables
     if (_valueLDR > _valLDRmax) {_valLDRmax = _valueLDR;}
     // record the minimum sensor value
     if (_valueLDR < _valLDRmin) {_valLDRmin = _valueLDR;}
-  }  
+  }
 }
 
 void Sensors::execute(){ // init program
-  //Serial.println("ejecutando.");
   uint8_t flat = updateSensor();
   while(flat == -1){updateSensor();}
   if(flat == 0){
-    //Serial.println("llamando.");
     presc__.RTCread(); 
-    if(dataUpdate==true && pconn__.statusConn==true){presc__.sendQuery();}
+    if(dataUpdate==true && pconn__.statusConn==true && pconn__.statusServer==true){
+      pconn__.sendQuery();
+      Serial.println("enviando data");
+      pconn__.readSerials();
+    }
     else presc__.writeSD();
   }
-  //Serial.println("salio write sd"); 
+  
 }
 
 uint8_t Sensors::updateSensor(){
