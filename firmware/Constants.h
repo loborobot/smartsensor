@@ -17,6 +17,8 @@
 
 #define STATUS_OFFCONNECTION false
 #define STATUS_ONCONNECTION true
+
+#define TOKEN 166d77ac1b46a1ec38aa35ab7e628ab5
 /*
 #define ONGPRS true
 #define OFFGPRS false
@@ -49,7 +51,7 @@ static char *commands_wifi_client[13]={
 
 static char* HTTPGET[4]={
                   "190.42.34.239",
-                  "GET //api/devices/ HTTP/1.0 \n",
+                  "GET /api/devices/ HTTP/1.0 \n",
                   "Accept: application/json \n",
                   "Authorization: Basic "  
                   };
@@ -59,7 +61,7 @@ static char* HTTPPOST[6]={
                   "POST /api/devices/ HTTP/1.0 \n", 
                   "Content-Type: application/json \n", 
                   "Accept: application/json \n", 
-                  "Authorization: Basic ", 
+                  //"Authorization: Basic ", 
                   "Content-Length: ", 
                   };
 
@@ -92,20 +94,3 @@ static char* JSONREQ[10]={
 
 
 
-
-
-
-
-
-
-
-
-
-// FUNCTIONS FOR COMPILE ERRORS
-void clearBuffer();
-void appendToBuffer(char c);
-void pushSlow(char* command,int charaterDelay=100,int endLineDelay=1000);
-bool waitForString(char* string, long waitForMilliseconds=5000);
-bool waitForString(char *string, int waitForMilliseconds=5000);
-void waitForData(int wait_delay);
-void bridge();

@@ -7,8 +7,10 @@
 #include <SD.h>
 #include <WiFiRM04.h>
 #include "Sensors.h"
+#include "Connection.h"
 
 Sensors psensors__;//objeto Sensores
+Connection pconn3__;
 
 
 //==============GPRS using GSM.h==========
@@ -46,7 +48,8 @@ void setup () {
 
 
 void loop () {
-  delay(10000);//10 seconds delay
-  psensors__.execute();
+  pconn3__.readSerials();
   Serial.println("Loop");
+  psensors__.execute();
+  delay(10000);//10 seconds delay
 }

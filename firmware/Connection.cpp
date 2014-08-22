@@ -2,6 +2,30 @@
 #include "Sensors.h"
 #include "Constants.h"
 
+char reqGET[]="GET /api/ HTTP/1.0\n"
+"Host: 192.168.1.200\n"
+"Accept: application/json\n"
+"Connection: close";
+    
+char reqPOST[]="POST /api/update/ HTTP/1.0\n"
+"Host: 192.168.1.200\n"
+"Content-Type: application/json\n"
+"Accept: application/json\n"
+"Content-Length: 245\n"
+"Connection: close\n";
+    
+char bodyPOST[]="{\"device\": \"166d77ac1b46a1ec38aa35ab7e628ab5\","
+"\"pub_date\": \"2014-07-15T22:02:27.321Z\","
+"\"temperature\": \"0\","
+"\"humidity\": \"0\","
+"\"light\": \"0\","
+"\"ultra_violet\": \"0\","
+"\"sound\": \"0\","
+"\"flowmeter\": \"0\","
+"\"volume\": \"0\","
+"\"nitrogen_dioxide\": \"0\","
+"\"carbon_monoxide\": \"0\"}";
+
 Sensors psens2__;
 
 char ssid[] = "WLAN_16D2"; //  your network SSID (name) 
@@ -37,7 +61,7 @@ void Connection::begin(){ //init variables
     // don't continue:
     while(true);
   } 
-  
+  /*
   // attempt to connect to Wifi network:
   while (status != WL_CONNECTED) { 
     Serial.print("Attempting to connect to SSID: ");
@@ -47,15 +71,18 @@ void Connection::begin(){ //init variables
   
     // wait 10 seconds for connection:
     delay(10000);
-  } 
+  } */
   Serial.println("Connected to wifi");
   statusConn = STATUS_ONCONNECTION;
-  //printWifiStatus();
+  printWifiStatus();
   
   Serial.println("\nStarting connection to server...");
   // if you get a connection, report back via serial:
   if (client.connect(server, 8000)) {
     Serial.println("connected to server");
+    client.println(reqPOST);
+    client.println(bodyPOST);
+    client.println();
     statusServer = STATUS_ONCONNECTION;
   }
 }
@@ -98,6 +125,10 @@ void Connection::sendQuery(){
   //byte mac[6];
   //WiFi.macAddress(mac);
   if(statusServer && statusConn){
+    /*client.println(reqPOST);
+    client.println(bodyPOST);
+    client.println();*/
+    /*
     String dataS = strucData();
     int lengthData = sizeData(dataS);
     for(int i=1; i<6; i++){
@@ -112,8 +143,10 @@ void Connection::sendQuery(){
       }
     }
     client.println(" ");
-    sendData(dataS);
+    sendData(dataS);*/
   }
+  //delay(1000);
+  //readSerials();
 }
 
 void Connection::sendData(String dataS){

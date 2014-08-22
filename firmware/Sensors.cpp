@@ -39,8 +39,8 @@ void Sensors::execute(){ // init program
     presc__.RTCread(); 
     if(dataUpdate==true && pconn__.statusConn==true && pconn__.statusServer==true){
       pconn__.sendQuery();
-      Serial.println("enviando data");
-      pconn__.readSerials();
+      //Serial.println("leyendo serial data");
+      //pconn__.readSerials();
     }
     else presc__.writeSD();
   }
