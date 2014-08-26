@@ -16,6 +16,7 @@ void rpm(){     //This is the function that the interupt calls
 void Sensors::begin(){ //init variables
   Serial.println("Start Sensonrs Config"); 
   pconn__.begin();
+  Serial.println(" ");
   presc__.begin(); 
   
   pinMode(FLOWMETER_PIN, INPUT); //initializes digital pin 2 as an input -flowmeter
@@ -117,6 +118,7 @@ uint8_t Sensors::readDataDHT() // temperature and humidity function
         // as bits[1] and bits[3] are allways zero they are omitted in formulas.
 	_humidity    = (bits[0] + bits[1])/10; 
 	_temperature = (bits[2] + bits[3])/10; 
+        
 
         //_valSensor[1] = convertF2C((bits[0] + bits[1])/10); 
 	//_valSensor[0] = convertF2C((bits[2] + bits[3])/10); 
@@ -129,7 +131,11 @@ uint8_t Sensors::readDataDHT() // temperature and humidity function
 
 uint8_t Sensors::readDataLDR() // LDR function
 {
+  
+  //Serial.print("temperature: ");Serial.println(_humidity);
+  //Serial.print("humedad: ");Serial.println(_temperature);
   _valueLDR = analogRead(LDR_PIN);
+  //Serial.print("ldr: ");Serial.println(_valueLDR);
   //_valueLDR = map(analogRead(LDR_PIN), _valLDRmin, _valLDRmax, 0, 255);
   //_valueLDR = constrain(_valueLDR, 0, 255);
   if (_valueLDR >= 0.0) return 0;
@@ -170,6 +176,7 @@ uint8_t Sensors::readDataLDR() // LDR function
 
 uint8_t Sensors::readDataUV(){ // UV function
   _valueUV = analogRead(UV_PIN);
+  //Serial.print("uv: ");Serial.println(_valueUV);
   //_valueUV = map(analogRead(UV_PIN), 0, 30, 0, 15); // read pinUV
   if (_valueUV >= 0.0) return 0;
   else return -1;
@@ -177,6 +184,7 @@ uint8_t Sensors::readDataUV(){ // UV function
 
 uint8_t Sensors::readDataSound(){
   _sound = analogRead(SOUND_PIN);
+  //Serial.print("sonido: ");Serial.println(_sound);
  // _sound = map(analogRead(SOUND_PIN), 0, 1023, 0, 100); //Sound
  if (_sound >= 0.0) return 0;
  else return -1;
@@ -189,6 +197,8 @@ uint8_t Sensors::readDataFlowmeter(){
  //cli();      //Disable interrupts
  _flowmeter = ((NbTopsFan * 60 / 5.5)/60); //(Pulse frequency x 60) / 5.5Q, = flow rate in L/hour 
  _volume = ((_flowmeter * 60)/1000); // m3/min
+ //Serial.print("flujo: ");Serial.println(_flowmeter);
+ //Serial.print("volumen: ");Serial.println(_volume);
  //_valSensor[5] = convertF2C(_flowmeter);
  //_valSensor[6] = convertF2C(_volume);
  if (_flowmeter >= 0.0 && _volume >= 0.0) return 0;

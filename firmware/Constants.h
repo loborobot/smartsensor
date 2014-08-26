@@ -19,6 +19,13 @@
 #define STATUS_ONCONNECTION true
 
 #define TOKEN 166d77ac1b46a1ec38aa35ab7e628ab5
+
+#define TOKEN1 6512bd43d9caa60276003fc202760200
+
+//5eb63bbbe01eee0276003fc202760200
+//5d41402abc4b2a0276003fc202760200
+
+
 /*
 #define ONGPRS true
 #define OFFGPRS false
@@ -78,6 +85,41 @@ static char* JSONREQ[10]={
                   "\",\"carbon_monoxide\": \"", 
                   "\"}"
                   };
+                  
+static char* bodyJSON[14]={
+ "{\"device\": \"166d77ac1b46a1ec38aa35ab7e628ab5\",",
+ "\"pub_date\": \"",
+ "\",\"temperature\": ",
+ ",\"humidity\": ",
+ ",\"light\": ",
+ ",\"ultra_violet\": ",
+ ",\"sound\": ",
+ ",\"flowmeter\": ",
+ ",\"volume\": ",
+ ",\"nitrogen_dioxide\": ",
+ ",\"carbon_monoxide\": ",
+ ",\"latitude\": ",
+ ",\"longitude\": ",
+ "}"
+};
+
+/*
+static char* bodyJSON[13]={
+ "{",
+ "\"device\":\"166d77ac1b46a1ec38aa35ab7e628ab5\",",
+ "\"pub_date\":\"2014-07-15T22:02:27.321Z\",",
+ "\"temperature\":\"0\",",
+ "\"humidity\":\"0\",",
+ "\"light\":\"0\",",
+ "\"ultra_violet\":\"0\",",
+ "\"sound\":\"0\",",
+ "\"flowmeter\":\"0\",",
+ "\"volume\":\"0\",",
+ "\"nitrogen_dioxide\":\"0\",",
+ "\"carbon_monoxide\":\"0\"",
+ "}"
+};
+*/
 
 /*static char* DATAB[9]={
                   "Temperature: ",
