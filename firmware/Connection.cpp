@@ -1,5 +1,6 @@
 #include "Connection.h"
-#include "Sensors.h"
+//#include "Resources.h"
+//#include "Sensors.h"
 #include "Constants.h"
 
 char reqGET[]="GET /api/ HTTP/1.0\n"
@@ -14,10 +15,11 @@ char reqPOST[]="POST /api/update/ HTTP/1.0\n"
 "Content-Length: 290\n"
 "Connection: close\n";
     
-char bodyPOST[]="{\"device\": \"166d77ac1b46a1ec38aa35ab7e628ab5\", \"pub_date\": \"2014-07-15T22:02:27.321Z\", \"temperature\": \"0\", \"humidity\": \"0\", \"light\": \"0\", \"ultra_violet\": \"0\", \"sound\": \"0\", \"flowmeter\": \"0\", \"volume\": \"0\", \"nitrogen_dioxide\": \"0\", \"carbon_monoxide\": \"0\"}";
+//char bodyPOST[]="{\"device\": \"166d77ac1b46a1ec38aa35ab7e628ab5\", \"pub_date\": \"2014-07-15T22:02:27.321Z\", \"temperature\": \"0\", \"humidity\": \"0\", \"light\": \"0\", \"ultra_violet\": \"0\", \"sound\": \"0\", \"flowmeter\": \"0\", \"volume\": \"0\", \"nitrogen_dioxide\": \"0\", \"carbon_monoxide\": \"0\"}";
 
 
-Sensors psens2__;
+//Sensors psens2__;
+//Resources presc2__;
 
 long previousMillis = 0;
 long interval = 10000; 
@@ -40,22 +42,15 @@ WiFiRM04Client client;
 void Connection::begin(){ //init variables
 
   Serial.println("Start Wireless Config"); 
-  //statusConn = STATUS_OFFCONNECTION;
-  //statusServer = STATUS_OFFCONNECTION;
-  //activeModeAT(); 
-  /*Serial.begin(115200); 
-  Serial1.begin(115200); 
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for Leonardo only
-  }*/
-  
+  statusConn = STATUS_OFFCONNECTION;
+  statusServer = STATUS_OFFCONNECTION;
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
     Serial.println("WiFi shield not present"); 
     // don't continue:
     while(true);
   } 
-  /*
+  
   // attempt to connect to Wifi network:
   while (status != WL_CONNECTED) { 
     Serial.print("Attempting to connect to SSID: ");
@@ -65,12 +60,12 @@ void Connection::begin(){ //init variables
   
     // wait 10 seconds for connection:
     delay(10000);
-  } */
+  } 
   Serial.println("Connected to wifi");
   statusConn = STATUS_ONCONNECTION;
   printWifiStatus();
-  int tam = sizeof(bodyPOST);
-  Serial.println(tam);
+  /*int tam = sizeof(bodyPOST);
+  Serial.println(tam);*/
   Serial.println("\nStarting connection to server...");
   
   Serial.println(reqPOST);
@@ -155,69 +150,45 @@ void Connection::readSerials(){
   }   
 }
 
-void Connection::sendQuery(){
-  //byte mac[6];
-  //WiFi.macAddress(mac);
-  if(statusServer && statusConn){
-    /*client.println(reqPOST);
-    client.println(bodyPOST);
-    client.println();*/
-    /*
-    String dataS = strucData();
-    int lengthData = sizeData(dataS);
-    for(int i=1; i<6; i++){
-      client.println(HTTPPOST[i]);
-      if(i==4){
-        client.print(HTTPPOST[i]);
-        client.print("00:00:00:00:00:00");
-      }
-      if(i==5){
-        client.print(HTTPPOST[i]);
-        client.println(lengthData);
-      }
+void Connection::printData(String data){
+  for(int k=0; k<6; k++){
+    if(k==4){
+      Serial.print(HTTPPOST[k]);
+      Serial.println(data.length());
     }
-    client.println(" ");
-    sendData(dataS);*/
+    else Serial.println(HTTPPOST[k]);
   }
-  //delay(1000);
-  //readSerials();
+  Serial.println(data);
+  Serial.println();
 }
 
-void Connection::sendData(String dataS){
-  if(statusServer && statusConn){
-    //client.println(dataS);
-    //client.flush();
-  }
+void Connection::sendQueryData(String data){
+    for(int l=0; l<6; l++){
+      if(l==4){
+        client.print(HTTPPOST[l]);
+        client.println(data.length());
+      }
+      else client.println(HTTPPOST[l]);
+    }
+    client.println(data);
+    client.println();
+  readSerials();
 }
 
-String Connection::strucData(){
-  int i = 0;
-  String data;
-  
-  data += JSONREQ[i];
-  data += psens2__.convertF2C(psens2__._humidity);
-  data += JSONREQ[i+1];
-  data += psens2__.convertF2C(psens2__._valueLDR);
-  data += JSONREQ[i+2];
-  data += psens2__.convertF2C(psens2__._valueUV);
-  data += JSONREQ[i+3];
-  data += psens2__.convertF2C(psens2__._sound);
-  data += JSONREQ[i+4];
-  data += psens2__.convertF2C(psens2__._flowmeter);
-  data += JSONREQ[i+5];
-  data += psens2__.convertF2C(psens2__._volume);
-  data += JSONREQ[i+6];
-  data += psens2__.convertF2C(psens2__._CO2);
-  data += JSONREQ[i+7];
-  data += psens2__.convertF2C(psens2__._NO2);
 
-  return data;
-}
 
-int Connection::sizeData(String dataS){
-  int sized = dataS.length();
-  return sized;
-}
+
+
+
+
+
+
+
+
+
+
+
+
 /*
 void Connection::activeModeAT(){
   Serial.begin(115200);

@@ -9,8 +9,8 @@
 Connection pconn1__;
 Sensors psens1__;
 RTC_DS1307 RTC;
+//DateTime now;
 File logFile;
-DateTime now;
 
 void Resources::begin(){ //init variables
   Serial.println("Resources Config");
@@ -23,10 +23,18 @@ void Resources::begin(){ //init variables
   //logFile = SD.open("log.txt", FILE_WRITE);
   //logFile.close();
   //pconn1__.begin();  
+
   Wire.begin();
   RTC.begin();
-  if (RTC.isrunning()) {RTC.adjust(DateTime(__DATE__, __TIME__));}
-  Serial.println("END Resources Config");
+
+  //if (! RTC.isrunning()) {
+    //Serial.println("RTC is NOT running!");
+    // following line sets the RTC to the date & time this sketch was compiled
+    RTC.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    // This line sets the RTC with an explicit date & time, for example to set
+    // January 21, 2014 at 3am you would call:
+    // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
+  //}
 }
 
 /*void Resources::execute(){ // init program
@@ -34,12 +42,28 @@ void Resources::begin(){ //init variables
 }
 */
 
-void Resources::RTCread(){
-  now = RTC.now();// funcion que regresa tiempo
- 
+String Resources::RTCread(){
+  String date;
+  DateTime now = RTC.now();// funcion que regresa tiempo
+  //  2014-07-15T22:02:27.321Z
+  date += now.year();
+  date += "-";
+  date += now.month();
+  date += "-";
+  date += now.day();
+  date += "T";
+  date += now.hour();
+  date += ":";
+  date += now.minute();
+  date += ":";
+  date += now.second();
+  date += ".000Z";
+  
+  return date;
 }
 
 void Resources::writeSD(){
+  /*
   if(!pconn1__.statusConn){;
   logFile = SD.open("log.txt", FILE_WRITE);
     if(logFile){
@@ -52,6 +76,7 @@ void Resources::writeSD(){
       }
       logFile.close();
     }
+    */
 }
 
 

@@ -7,8 +7,8 @@
 class Sensors
 {
 public:
+  /*float _temperature;
   float _humidity;
-  float _temperature;
   int _valueLDR;
   int _valLDRmin = 1023;
   int _valLDRmax = 0;
@@ -17,25 +17,25 @@ public:
   float _sound;
   float _flowmeter; 
   float _volume ;
-  float _CO2;
   float _NO2;
+  float _CO2;*/
   
   //char* _valSensor[9];
   boolean dataUpdate;
   
   void begin();
-  void execute();
-  uint8_t updateSensor();
+  void execute(int flo, int vol);
+  String  strucData(int flo, int vol);
   char* convertF2C(float val);
   
   uint8_t readDataDHT();
-  uint8_t readDataLDR();
-  uint8_t readDataUV();
-  uint8_t readDataSound();
-  uint8_t readDataFlowmeter();
-  uint8_t readDataCO2();
-  uint8_t readDataNO2();
-  volatile int NbTopsFan; //measuring the rising edges of the signal
+  int readDataLDR();
+  char* readDataUV();
+  char* readDataSound();
+  char* readDataFlowmeter(int flat);
+  char* readDataCO2();
+  char* readDataNO2();
+  volatile int NbTopsFanSen; //measuring the rising edges of the signal
 
 private:
 };

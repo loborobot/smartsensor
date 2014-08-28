@@ -16,10 +16,9 @@ public:
   void printWifiStatus();
   void readSerials();
   
-  void sendQuery();
-  void sendData(String dataS);
-  String strucData();
-  int sizeData(String dataS);
+  void printData(String data);
+  void sendQueryData(String data);
+
   /*
   void activeModeAT();
   void setConnection();

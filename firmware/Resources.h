@@ -9,10 +9,10 @@ class Resources
 {
 public:  
   void begin();
-  //void execute();
   
-  void RTCread();
+  String RTCread();
   void writeSD();
+  void dateFormat();
   
 private:
 };
