@@ -4,8 +4,8 @@
 #define UV_PIN A5 //pin UV Analogico
 #define SOUND_PIN 4 //pin SOUND Analogico
 #define FLOWMETER_PIN 2 //pin CAUDAL Digital
-#define CO2_PIN A1  //pin CO2 analogico
-#define NO2_PIN A2  //pin NO2 analogico
+#define CO2_PIN A2  //pin CO2 analogico
+#define NO2_PIN A1  //pin NO2 analogico
 
 /*
 #define SCAPE_PIN  21
@@ -26,6 +26,8 @@
 
 //5eb63bbbe01eee0276003fc202760200
 //5d41402abc4b2a0276003fc202760200
+
+#define COMMAND_MODE_GUARD_TIME 250 // in milliseconds
 
 //==============GPRS using GSM.h==========
 /*
@@ -54,6 +56,8 @@ int port = 8000; // the port, 80 for HTTP
 #define GPRS_LOGIN     "amx"    // replace with your GPRS login
 #define GPRS_PASSWORD  "amx" // replace with your GPRS password
 */
+
+static char* SERVER[1]={"192.168.1.200"};
 
 static char *commands_wifi_client[13]={
   "at+netmode=2\r\n",

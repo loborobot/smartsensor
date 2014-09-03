@@ -5,7 +5,7 @@
 #include <Wire.h>
 #include <RTClib.h>
 #include <SD.h>
-#include <WiFiRM04.h>
+//#include <WiFiRM04.h>
 #include "Sensors.h"
 #include "Connection.h"
 #include "Constants.h"

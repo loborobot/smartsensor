@@ -20,6 +20,9 @@ char reqPOST[]="POST /api/update/ HTTP/1.0\n"
 
 //Sensors psens2__;
 //Resources presc2__;
+boolean connected = false;
+uint32_t baud[7]={
+  2400, 4800, 9600, 19200, 38400, 57600, 115200};
 
 long previousMillis = 0;
 long interval = 10000; 
@@ -28,24 +31,27 @@ char ssid[] = "WLAN_16D2"; //  your network SSID (name)
 char pass[] = "Z1460809D16D2";    // your network password (use for WPA, or use as key for WEP)
 int keyIndex = 0;            // your network key Index number (needed only for WEP)
 
-int status = WL_IDLE_STATUS;
+//int status = WL_IDLE_STATUS;
 // if you don't want to use DNS (and reduce your sketch size)
 // use the numeric IP instead of the name for the server:
-IPAddress server(192,168,1,200);  // numeric IP for Google (no DNS)
+//IPAddress server(192,168,1,200);  // numeric IP for Google (no DNS)
 //char server[] = "192.168.1.200";    // name address for Google (using DNS)
 
 // Initialize the Ethernet client library
 // with the IP address and port of the server 
 // that you want to connect to (port 80 is default for HTTP):
-WiFiRM04Client client;
+//WiFiRM04Client client;
 
 void Connection::begin(){ //init variables
 
   Serial.println("Start Wireless Config"); 
   statusConn = STATUS_OFFCONNECTION;
   statusServer = STATUS_OFFCONNECTION;
+  if(connect()){
+    statusConn = STATUS_ONCONNECTION;
+  }
   // check for the presence of the shield:
-  if (WiFi.status() == WL_NO_SHIELD) {
+  /*if (WiFi.status() == WL_NO_SHIELD) {
     Serial.println("WiFi shield not present"); 
     // don't continue:
     while(true);
@@ -61,11 +67,11 @@ void Connection::begin(){ //init variables
     // wait 10 seconds for connection:
     delay(10000);
   } 
-  Serial.println("Connected to wifi");
-  statusConn = STATUS_ONCONNECTION;
-  printWifiStatus();
+  Serial.println("Connected to wifi");*/
+  
+  //printWifiStatus();
   /*int tam = sizeof(bodyPOST);
-  Serial.println(tam);*/
+  Serial.println(tam);
   Serial.println("\nStarting connection to server...");
   
   Serial.println(reqPOST);
@@ -81,8 +87,8 @@ void Connection::begin(){ //init variables
     if(j==0)Serial.print(bodyJSON[j]);
   }
   Serial.println();
-  Serial.println();
-  
+  Serial.println();*/
+  /*
   // if you get a connection, report back via serial:
   if (client.connect(server, 8000)) {
     Serial.println("connected to server");
@@ -102,10 +108,10 @@ void Connection::begin(){ //init variables
     statusServer = STATUS_ONCONNECTION;
   }
   readSerials();
-  
+  */
 }
 
-void Connection::printWifiStatus() {
+/*void Connection::printWifiStatus() {
   // print the SSID of the network you're attached to:
   Serial.print("SSID: ");
   Serial.println(WiFi.SSID());
@@ -122,9 +128,9 @@ void Connection::printWifiStatus() {
   Serial.println(" dBm");
   
   Serial.println("END setup");
-}
+}*/
 
-
+/*
 void Connection::readSerials(){
   
  unsigned long Starttime = millis();
@@ -148,7 +154,7 @@ void Connection::readSerials(){
     // do nothing forevermore:
     while(true);
   }   
-}
+}*/
 
 void Connection::printData(String data){
   for(int k=0; k<6; k++){
@@ -162,25 +168,171 @@ void Connection::printData(String data){
   Serial.println();
 }
 
-void Connection::sendQueryData(String data){
-    for(int l=0; l<6; l++){
-      if(l==4){
-        client.print(HTTPPOST[l]);
-        client.println(data.length());
+boolean Connection::sendQueryData(String data){
+  if(enterCommandMode()){
+    if(open(SERVER[0], 8000)){
+      statusServer = STATUS_ONCONNECTION;
+      for(int l=0; l<6; l++){
+        if(l==4){
+          Serial1.print(HTTPPOST[l]);
+          Serial1.println(data.length());
+          //client.print(HTTPPOST[l]);
+          //client.println(data.length());
+        }
+        else Serial1.println(HTTPPOST[l]);
+        //else client.println(HTTPPOST[l]);
       }
-      else client.println(HTTPPOST[l]);
+      Serial1.println(data);
+      Serial1.println();
+      if(close()) return true;
+      //client.println(data);
+      //client.println();
+      //readSerials();
     }
-    client.println(data);
-    client.println();
-  readSerials();
+  }
+  else{
+    repair();
+    return false;
+  }
 }
 
 
 
 
+boolean Connection::findInResponse(const char *toMatch,
+unsigned int timeOut = 1000) {
+  int byteRead;
+
+  unsigned long timeOutTarget; // in milliseconds
+
+  for (unsigned int offset = 0; offset < strlen(toMatch); offset++) {
+    timeOutTarget = millis() + timeOut; // Doesn't handle timer wrapping
+    while (!Serial1.available()) {
+      // Wait, with optional time out.
+      if (timeOut > 0) {
+        if (millis() > timeOutTarget) {
+          return false;
+        }
+      }
+      delay(1); // This seems to improve reliability slightly
+    }
+    byteRead = Serial1.read();
+    //Serial.print((char)byteRead);
+    delay(1); // Removing logging may affect timing slightly
+
+    if (byteRead != toMatch[offset]) {
+      offset = 0;
+      // Ignore character read if it's not a match for the start of the string
+      if (byteRead != toMatch[offset]) {
+        offset = -1;
+      }
+      continue;
+    }
+  }
+
+  return true;
+}
+
+boolean Connection::enterCommandMode() {
+    delay(COMMAND_MODE_GUARD_TIME);
+    Serial1.print(F("$$$"));
+    delay(COMMAND_MODE_GUARD_TIME);
+    Serial1.println();
+    Serial1.println();
+    if (findInResponse("\r\n<", 1000))
+    {
+      return true;
+    }
+  return false;
+}
+
+boolean Connection::connect(){
+  Serial.println("Connecting..");
+  if(enterCommandMode()){
+    Serial.println("inicio config");
+    Serial1.println("set wlan auth 4\r");delay(1000);
+    Serial1.println("set ip dhcp 1\r");delay(1000);
+    Serial1.println("set ip proto 10\r");delay(1000);
+    Serial1.println("set wlan ssid WLAN_16D2\r");delay(1000);
+    Serial1.println("set wlan phrase Z1460809D16D2\r");delay(1000);
+    Serial1.println("set comm remote 0");delay(1000);
+    Serial1.println("set wlan linkmon 5\r");delay(1000);
+    Serial1.println("set wlan channel 0\r");delay(1000);
+    Serial1.println("set wlan join 1\r");delay(1000);
+    Serial1.println("save\r");delay(1000);
+    Serial1.println("reboot\r");
+    Serial.println("fin config");
+    return true;
+  }
+  else{
+    repair();
+    return false;
+  }
+} 
 
 
+boolean Connection::open(const char *addr, int port) {
 
+  if (connected) {
+    close();
+  } 
+  if (enterCommandMode())
+  {
+    Serial1.print("open ");
+    Serial1.print(addr);
+    Serial1.print(" ");
+    Serial1.print(port);
+    Serial1.println("\r");
+    if (findInResponse("*OPEN*", 3000)) 
+    {
+      connected = true;
+      return true;
+    }
+    else return false;
+  }
+  enterCommandMode();
+  return false;
+}
+
+boolean Connection::close() {
+  if (!connected) {
+    return true;
+  }
+  Serial1.println("close\r");
+  if (findInResponse("*CLOS*", 3000)) {
+    connected = false;
+    return true;
+  }
+  connected = false;
+  return false;
+}
+
+
+boolean Connection::reset() {
+  enterCommandMode();
+  Serial1.println("factory R\r"); // Store settings
+  Serial1.println("save\r"); // Store settings
+  Serial1.println("reboot\r");
+  
+  return true;
+}
+
+void Connection::repair(){
+  if(!enterCommandMode())
+  {
+    boolean repair = true;
+    for (int i=6; ((i>=0)&&repair); i--)
+    {
+      Serial1.begin(baud[i]);
+      if(enterCommandMode()) 
+      {
+        reset();
+        repair = false;
+      }
+      Serial1.begin(9600);
+    }
+  }
+}
 
 
 

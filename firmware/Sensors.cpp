@@ -8,6 +8,8 @@ Sensors psens__;
 Resources presc__;
 Connection pconn__;
 
+boolean sendData = false;
+
 float _temperature;
 float _humidity;
 int _valueLDR;
@@ -42,8 +44,14 @@ void Sensors::execute(int flo, int vol){ // init program
   //if(pconn__.statusConn==true && pconn__.statusServer==true){
     //while(flat == -1){updateSensor();}
     //if(flat == 0){
-      pconn__.printData(data);
-      pconn__.sendQueryData(data);
+  pconn__.printData(data);
+  if(pconn__.sendQueryData(data)){
+    sendData = true;
+  }
+  else{
+    pconn__.connect();
+    sendData = false;
+  }
     //}
   //}
   //else presc__.writeSD(); 
@@ -180,14 +188,12 @@ char* Sensors::readDataFlowmeter(int flat){
 }
 
 char* Sensors::readDataCO2(){
-  _CO2 = 12.3;
-  //_valSensor[7] = convertF2C(_co2);
+  _CO2 = analogRead(CO2_PIN);
   return convertF2C(_CO2);
 }
 
 char* Sensors::readDataNO2(){
-  _NO2 = 48.2;
-  //_valSensor[8] = convertF2C(_no2);
+  _NO2 = analogRead(NO2_PIN);
   return convertF2C(_NO2);
 }
 
