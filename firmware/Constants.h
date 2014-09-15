@@ -3,7 +3,7 @@
 #define LDR_PIN A0 //pin LDR Analogico
 #define UV_PIN A5 //pin UV Analogico
 #define SOUND_PIN 4 //pin SOUND Analogico
-#define FLOWMETER_PIN 2 //pin CAUDAL Digital
+#define FLOWMETER_PIN 4 //pin CAUDAL Digital
 #define CO2_PIN A2  //pin CO2 analogico
 #define NO2_PIN A1  //pin NO2 analogico
 

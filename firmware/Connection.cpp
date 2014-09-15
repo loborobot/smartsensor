@@ -27,10 +27,13 @@ uint32_t baud[7]={
 long previousMillis = 0;
 long interval = 10000; 
 
+//****************************************************************START WIFI-RN171
 char ssid[] = "WLAN_16D2"; //  your network SSID (name) 
 char pass[] = "Z1460809D16D2";    // your network password (use for WPA, or use as key for WEP)
 int keyIndex = 0;            // your network key Index number (needed only for WEP)
+//****************************************************************END WIFI-RN171
 
+//****************************************************************START WIFI-HILINK
 //int status = WL_IDLE_STATUS;
 // if you don't want to use DNS (and reduce your sketch size)
 // use the numeric IP instead of the name for the server:
@@ -41,6 +44,7 @@ int keyIndex = 0;            // your network key Index number (needed only for W
 // with the IP address and port of the server 
 // that you want to connect to (port 80 is default for HTTP):
 //WiFiRM04Client client;
+//*******************************************************************END WIFI-HILINK
 
 void Connection::begin(){ //init variables
 
@@ -50,6 +54,7 @@ void Connection::begin(){ //init variables
   if(connect()){
     statusConn = STATUS_ONCONNECTION;
   }
+  //*************************************************START WIFI-HILINK
   // check for the presence of the shield:
   /*if (WiFi.status() == WL_NO_SHIELD) {
     Serial.println("WiFi shield not present"); 
@@ -155,7 +160,9 @@ void Connection::readSerials(){
     while(true);
   }   
 }*/
+//**************************************************************************END WIFI-HILINK 
 
+//**************************************************************************START WIFI-RN171
 void Connection::printData(String data){
   for(int k=0; k<6; k++){
     if(k==4){
@@ -333,7 +340,7 @@ void Connection::repair(){
     }
   }
 }
-
+//***************************************************************END WIFI-RN171
 
 
 
