@@ -1,5 +1,5 @@
 #include <Wire.h>
-#include <SD.h>
+//#include <SD.h>
 #include <RTClib.h>
 #include "Constants.h"
 #include "Resources.h"
@@ -10,15 +10,15 @@ Connection pconn1__;
 Sensors psens1__;
 RTC_DS1307 RTC;
 //DateTime now;
-File logFile;
+//File logFile;
 
 void Resources::begin(){ //init variables
   Serial.println("Resources Config");
-  pinMode(10, OUTPUT);
-  if (!SD.begin(4)) {
-    Serial.println("SD Card initialization failed");
+  //pinMode(10, OUTPUT);
+  //if (!SD.begin(4)) {
+    //Serial.println("SD Card initialization failed");
     //return;
-  }
+  //}
   //Serial.println("initialization done.");
   //logFile = SD.open("log.txt", FILE_WRITE);
   //logFile.close();

@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <string.h>
-//#include <WiFiRM04.h>
+#include <WiFiRM04.h>
 
 class Connection
 {
@@ -13,8 +13,8 @@ public:
   //boolean modeAT;
   
   void begin();
-  //void printWifiStatus();
-  //void readSerials();
+  void printWifiStatus();
+  void readSerials();
   boolean findInResponse(const char *toMatch,
                            unsigned int timeOut);
   boolean enterCommandMode();

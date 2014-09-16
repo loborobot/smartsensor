@@ -15,7 +15,7 @@ char reqPOST[]="POST /api/update/ HTTP/1.0\n"
 "Content-Length: 290\n"
 "Connection: close\n";
     
-//char bodyPOST[]="{\"device\": \"166d77ac1b46a1ec38aa35ab7e628ab5\", \"pub_date\": \"2014-07-15T22:02:27.321Z\", \"temperature\": \"0\", \"humidity\": \"0\", \"light\": \"0\", \"ultra_violet\": \"0\", \"sound\": \"0\", \"flowmeter\": \"0\", \"volume\": \"0\", \"nitrogen_dioxide\": \"0\", \"carbon_monoxide\": \"0\"}";
+char bodyPOST[]="{\"device\": \"166d77ac1b46a1ec38aa35ab7e628ab5\", \"pub_date\": \"2014-07-15T22:02:27.321Z\", \"temperature\": \"0\", \"humidity\": \"0\", \"light\": \"0\", \"ultra_violet\": \"0\", \"sound\": \"0\", \"flowmeter\": \"0\", \"volume\": \"0\", \"nitrogen_dioxide\": \"0\", \"carbon_monoxide\": \"0\"}";
 
 
 //Sensors psens2__;
@@ -27,23 +27,21 @@ uint32_t baud[7]={
 long previousMillis = 0;
 long interval = 10000; 
 
-//****************************************************************START WIFI-RN171
 char ssid[] = "WLAN_16D2"; //  your network SSID (name) 
 char pass[] = "Z1460809D16D2";    // your network password (use for WPA, or use as key for WEP)
 int keyIndex = 0;            // your network key Index number (needed only for WEP)
-//****************************************************************END WIFI-RN171
 
 //****************************************************************START WIFI-HILINK
-//int status = WL_IDLE_STATUS;
+int status = WL_IDLE_STATUS;
 // if you don't want to use DNS (and reduce your sketch size)
 // use the numeric IP instead of the name for the server:
-//IPAddress server(192,168,1,200);  // numeric IP for Google (no DNS)
+IPAddress server(192,168,1,200);  // numeric IP for Google (no DNS)
 //char server[] = "192.168.1.200";    // name address for Google (using DNS)
 
 // Initialize the Ethernet client library
 // with the IP address and port of the server 
 // that you want to connect to (port 80 is default for HTTP):
-//WiFiRM04Client client;
+WiFiRM04Client client;
 //*******************************************************************END WIFI-HILINK
 
 void Connection::begin(){ //init variables
@@ -51,12 +49,12 @@ void Connection::begin(){ //init variables
   Serial.println("Start Wireless Config"); 
   statusConn = STATUS_OFFCONNECTION;
   statusServer = STATUS_OFFCONNECTION;
-  if(connect()){
+  /*if(connect()){
     statusConn = STATUS_ONCONNECTION;
-  }
+  }*/
   //*************************************************START WIFI-HILINK
   // check for the presence of the shield:
-  /*if (WiFi.status() == WL_NO_SHIELD) {
+  if (WiFi.status() == WL_NO_SHIELD) {
     Serial.println("WiFi shield not present"); 
     // don't continue:
     while(true);
@@ -72,10 +70,10 @@ void Connection::begin(){ //init variables
     // wait 10 seconds for connection:
     delay(10000);
   } 
-  Serial.println("Connected to wifi");*/
+  Serial.println("Connected to wifi");
   
-  //printWifiStatus();
-  /*int tam = sizeof(bodyPOST);
+  printWifiStatus();
+  int tam = sizeof(bodyPOST);
   Serial.println(tam);
   Serial.println("\nStarting connection to server...");
   
@@ -92,8 +90,8 @@ void Connection::begin(){ //init variables
     if(j==0)Serial.print(bodyJSON[j]);
   }
   Serial.println();
-  Serial.println();*/
-  /*
+  Serial.println();
+  
   // if you get a connection, report back via serial:
   if (client.connect(server, 8000)) {
     Serial.println("connected to server");
@@ -113,10 +111,10 @@ void Connection::begin(){ //init variables
     statusServer = STATUS_ONCONNECTION;
   }
   readSerials();
-  */
+  
 }
 
-/*void Connection::printWifiStatus() {
+void Connection::printWifiStatus() {
   // print the SSID of the network you're attached to:
   Serial.print("SSID: ");
   Serial.println(WiFi.SSID());
@@ -133,9 +131,9 @@ void Connection::begin(){ //init variables
   Serial.println(" dBm");
   
   Serial.println("END setup");
-}*/
+}
 
-/*
+
 void Connection::readSerials(){
   
  unsigned long Starttime = millis();
@@ -159,10 +157,46 @@ void Connection::readSerials(){
     // do nothing forevermore:
     while(true);
   }   
-}*/
+}
+
+void Connection::printData(String data){
+  for(int k=0; k<6; k++){
+    if(k==4){
+      Serial.print(HTTPPOST[k]);
+      Serial.println(data.length());
+    }
+    else Serial.println(HTTPPOST[k]);
+  }
+  Serial.println(data);
+  Serial.println();
+}
+
+boolean Connection::sendQueryData(String data){
+      statusServer = STATUS_ONCONNECTION;
+      for(int l=0; l<6; l++){
+        if(l==4){
+          client.print(HTTPPOST[l]);
+          client.println(data.length());
+          //client.print(HTTPPOST[l]);
+          //client.println(data.length());
+        }
+        else client.println(HTTPPOST[l]);
+        //else client.println(HTTPPOST[l]);
+      }
+      client.println(data);
+      client.println();
+      return true;
+      //client.println(data);
+      //client.println();
+      //readSerials();
+}
+
 //**************************************************************************END WIFI-HILINK 
 
+
+
 //**************************************************************************START WIFI-RN171
+/*
 void Connection::printData(String data){
   for(int k=0; k<6; k++){
     if(k==4){
@@ -340,6 +374,7 @@ void Connection::repair(){
     }
   }
 }
+*/
 //***************************************************************END WIFI-RN171
 
 

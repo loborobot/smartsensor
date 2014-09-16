@@ -26,7 +26,7 @@ float _CO2;
 void Sensors::begin(){ //init variables
   Serial.println("Start Sensonrs Config"); 
   pconn__.begin();
-  presc__.begin(); 
+  //presc__.begin(); 
   
  
   // calibrate during the first five seconds 
@@ -49,7 +49,7 @@ void Sensors::execute(int flo, int vol){ // init program
     sendData = true;
   }
   else{
-    pconn__.connect();
+    //pconn__.connect();
     sendData = false;
   }
     //}
