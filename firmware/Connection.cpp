@@ -54,7 +54,7 @@ void Connection::begin(){ //init variables
   }*/
   //*************************************************START WIFI-HILINK
   // check for the presence of the shield:
-  if (WiFi.status() == WL_NO_SHIELD) {
+  /*if (WiFi.status() == WL_NO_SHIELD) {
     Serial.println("WiFi shield not present"); 
     // don't continue:
     while(true);
@@ -71,12 +71,13 @@ void Connection::begin(){ //init variables
     delay(10000);
   } 
   Serial.println("Connected to wifi");
-  
+  */
   printWifiStatus();
   int tam = sizeof(bodyPOST);
   Serial.println(tam);
   Serial.println("\nStarting connection to server...");
   
+  /*
   Serial.println(reqPOST);
   for(int j=0; j<14; j++){
     if(j == 1){
@@ -90,7 +91,7 @@ void Connection::begin(){ //init variables
     if(j==0)Serial.print(bodyJSON[j]);
   }
   Serial.println();
-  Serial.println();
+  Serial.println();*/
   
   // if you get a connection, report back via serial:
   if (client.connect(server, 8000)) {
@@ -185,10 +186,9 @@ boolean Connection::sendQueryData(String data){
       }
       client.println(data);
       client.println();
+      readSerials();
       return true;
-      //client.println(data);
-      //client.println();
-      //readSerials();
+      
 }
 
 //**************************************************************************END WIFI-HILINK 
