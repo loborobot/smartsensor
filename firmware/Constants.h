@@ -1,4 +1,4 @@
-//#define DHT22_PIN 3 //pin DHT22
+// Define pins number for all sensors
 #define DHT_PIN 8 //pin DHT11 Digital
 #define LDR_PIN A0 //pin LDR Analogico
 #define UV_PIN A5 //pin UV Analogico
@@ -17,15 +17,9 @@
 #define MODE_AT_ACTIVE  true
 */
 
+// check status conection
 #define STATUS_OFFCONNECTION false
 #define STATUS_ONCONNECTION true
-
-#define TOKEN 166d77ac1b46a1ec38aa35ab7e628ab5
-
-#define TOKEN1 6512bd43d9caa60276003fc202760200
-
-//5eb63bbbe01eee0276003fc202760200
-//5d41402abc4b2a0276003fc202760200
 
 #define COMMAND_MODE_GUARD_TIME 250 // in milliseconds
 
@@ -57,8 +51,10 @@ int port = 8000; // the port, 80 for HTTP
 #define GPRS_PASSWORD  "amx" // replace with your GPRS password
 */
 
+// ip server
 static char* SERVER[1]={"192.168.1.200"};
 
+// commans AT for set HLK-RM04 (not use because we use WiFiRM04 library)
 static char *commands_wifi_client[13]={
   "at+netmode=2\r\n",
   "at+wifi_conf=WLAN_16D2,wpa2_aes,Z1460809D16D2\r\n",
@@ -75,7 +71,7 @@ static char *commands_wifi_client[13]={
   "at+reconn=1\r\n",
   };
 
-
+//query get for send serve
 static char* HTTPGET[4]={
   "GET /api/ HTTP/1.0",
   "Host: 192.168.1.200",
@@ -88,6 +84,7 @@ static char* HTTPGET[4]={
   "Accept: application/json \n",
   "Authorization: Basic "*/
 
+// query POST for send server
 static char* HTTPPOST[6]={
   "POST /api/update/ HTTP/1.0",
   "Host: 192.168.1.200",
@@ -104,21 +101,8 @@ static char* HTTPPOST[6]={
   //"Authorization: Basic ", 
   "Content-Length: ", */
                   
-
-// Data JSON structure                  
-static char* JSONREQ[10]={
-  "{\"temperature\": \"",
-  "\",\"humidity\": \"", 
-  "\",\"light\": \"",
-  "\",\"ultra_violet\": \"",
-  "\",\"sound\": \"",
-  "\",\"flowmeter\": \"", 
-  "\",\"volume\": \"", 
-  "\",\"nitro_dioxide\": \"", 
-  "\",\"carbon_monoxide\": \"", 
-  "\"}"
-  };
-                  
+   
+// 1: data JSON structue               
 static char* bodyJSON[14]={
   "{\"device\": \"166d77ac1b46a1ec38aa35ab7e628ab5\",",
   "\"pub_date\": \"",
@@ -136,23 +120,19 @@ static char* bodyJSON[14]={
   "}"
   };
 
-/*
-static char* bodyJSON[13]={
- "{",
- "\"device\":\"166d77ac1b46a1ec38aa35ab7e628ab5\",",
- "\"pub_date\":\"2014-07-15T22:02:27.321Z\",",
- "\"temperature\":\"0\",",
- "\"humidity\":\"0\",",
- "\"light\":\"0\",",
- "\"ultra_violet\":\"0\",",
- "\"sound\":\"0\",",
- "\"flowmeter\":\"0\",",
- "\"volume\":\"0\",",
- "\"nitrogen_dioxide\":\"0\",",
- "\"carbon_monoxide\":\"0\"",
- "}"
-};
-*/
 
+// 2: Data JSON structure                  
+static char* JSONREQ[10]={
+  "{\"temperature\": \"",
+  "\",\"humidity\": \"", 
+  "\",\"light\": \"",
+  "\",\"ultra_violet\": \"",
+  "\",\"sound\": \"",
+  "\",\"flowmeter\": \"", 
+  "\",\"volume\": \"", 
+  "\",\"nitro_dioxide\": \"", 
+  "\",\"carbon_monoxide\": \"", 
+  "\"}"
+  };
 
 

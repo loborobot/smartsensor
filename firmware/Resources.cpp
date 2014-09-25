@@ -8,7 +8,7 @@
 
 Connection pconn1__;
 Sensors psens1__;
-RTC_DS1307 RTC;
+RTC_DS1307 RTC; // object to RTC
 //DateTime now;
 //File logFile;
 
@@ -26,7 +26,7 @@ void Resources::begin(){ //init variables
 
   Wire.begin();
   RTC.begin();
-
+  // run clock with time PC
   if (! RTC.isrunning()) {
     RTC.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
@@ -37,6 +37,7 @@ void Resources::begin(){ //init variables
 }
 */
 
+// Struct format date end time (read)
 String Resources::RTCread(){
   String date;
   DateTime now = RTC.now();// funcion que regresa tiempo
@@ -57,6 +58,7 @@ String Resources::RTCread(){
   return date;
 }
 
+//printer data in SD card
 void Resources::writeSD(){
   /*
   if(!pconn1__.statusConn){;

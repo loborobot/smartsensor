@@ -5,6 +5,7 @@
 #include <string.h>
 #include <WiFiRM04.h>
 
+// class connection with WiFi/GSM
 class Connection
 {
 public:
@@ -15,6 +16,12 @@ public:
   void begin();
   void printWifiStatus();
   void readSerials();
+  
+  void printData(String data);
+  boolean sendQueryData(String data);
+  void serverReceive();
+  
+    /* RN-171
   boolean findInResponse(const char *toMatch,
                            unsigned int timeOut);
   boolean enterCommandMode();
@@ -23,12 +30,9 @@ public:
   boolean close();
   boolean reset();
   void repair();
+  */
   
-  
-  void printData(String data);
-  boolean sendQueryData(String data);
-
-  /*
+  /* HLK-RM04
   void activeModeAT();
   void setConnection();
   boolean verifyConnection();

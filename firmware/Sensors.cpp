@@ -4,12 +4,14 @@
 #include "Resources.h"
 #include "Connection.h"
 
+// pointers for call object
 Sensors psens__;
 Resources presc__;
 Connection pconn__;
 
 boolean sendData = false;
 
+// sensor's variables
 float _temperature;
 float _humidity;
 int _valueLDR;
@@ -30,13 +32,13 @@ void Sensors::begin(){ //init variables
   
  
   // calibrate during the first five seconds 
-  while (millis() < 5000) {
+  /*while (millis() < 5000) {
     _valueLDR = analogRead(LDR_PIN);
     // record the maximum sensor value
     if (_valueLDR > _valLDRmax) {_valLDRmax = _valueLDR;}
     // record the minimum sensor value
     if (_valueLDR < _valLDRmin) {_valLDRmin = _valueLDR;}
-  }
+  }*/
 }
 
 void Sensors::execute(int flo, int vol){ // init program
@@ -187,16 +189,17 @@ char* Sensors::readDataFlowmeter(int flat){
  else return convertF2C(_volume);
 }
 
-char* Sensors::readDataCO2(){
+char* Sensors::readDataCO2(){ //cos2 function
   _CO2 = analogRead(CO2_PIN);
   return convertF2C(_CO2);
 }
 
-char* Sensors::readDataNO2(){
+char* Sensors::readDataNO2(){ //no2 funcion
   _NO2 = analogRead(NO2_PIN);
   return convertF2C(_NO2);
 }
 
+// strtc data function
 String Sensors::strucData(int flo, int vol){
   int i = 0;
   String data;
@@ -233,6 +236,7 @@ String Sensors::strucData(int flo, int vol){
   return data;
 }
 
+// convert float to string function
 char* Sensors::convertF2C(float val){
   static char dtostrfbuffer[10];
   return dtostrf(val,5, 2, dtostrfbuffer);

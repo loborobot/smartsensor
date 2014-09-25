@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <string.h>
 
+// class sensors
 class Sensors
 {
 public:

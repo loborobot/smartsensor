@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <string.h>
 
-
+// class resources: Sdcard, EPROM, RTC
 class Resources
 {
 public:  
