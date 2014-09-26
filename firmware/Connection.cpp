@@ -225,11 +225,6 @@ void Connection::serverReceive(){
           client.println("Connection: close");  // the connection will be closed after completion of the response
           client.println("Refresh: 5");  // refresh the page automatically every 5 sec
           client.println();
-          client.println("HTTP/1.1 200 OK");
-          client.println("Content-Type: text/html");
-          client.println("Connection: close");  // the connection will be closed after completion of the response
-          client.println("Refresh: 5");  // refresh the page automatically every 5 sec
-          client.println();
           client.println("<!DOCTYPE HTML>");
           client.println("<HTML>");
           client.println("<HEAD>");
@@ -239,7 +234,7 @@ void Connection::serverReceive(){
           client.println("<TITLE>Loborobot Project</TITLE>");
           client.println("</HEAD>");
           client.println("<BODY>");
-          client.println("<H1>Automation Water</H1>");
+          client.println("<H1>Irrigation Automation</H1>");
           client.println("<hr />");
           client.println("<br />");  
           client.println("<H2>Arduino with HLK-RM04</H2>");
