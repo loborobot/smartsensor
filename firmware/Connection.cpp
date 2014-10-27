@@ -76,8 +76,8 @@ void Connection::begin(){ //init variables
   Serial.println("Connected to wifi");
   statusConn = STATUS_ONCONNECTION;
   printWifiStatus();
-  int tam = sizeof(bodyPOST);
-  Serial.println(tam);
+  //int tam = sizeof(bodyPOST);
+  //Serial.println(tam);
   Serial.println("\nStarting connection to server...");
   
   /* // not use, can delete
@@ -162,7 +162,7 @@ void Connection::readSerials(){
     // do nothing forevermore:
     while(true);
   }  
- client.stop(); 
+ //client.stop(); 
 }
 
 // print data send
@@ -198,6 +198,8 @@ boolean Connection::sendQueryData(String data){
       return true;
   //}
 }
+
+
 
 //server mode function
 void Connection::serverReceive(){
@@ -283,8 +285,8 @@ void Connection::serverReceive(){
     Serial.println("Termina server");
   }
 }
-//**************************************************************************END WIFI-HILINK 
 
+//**************************************************************************END WIFI-HILINK 
 
 
 //**************************************************************************START WIFI-RN171
