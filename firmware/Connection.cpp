@@ -28,6 +28,7 @@ uint32_t baud[7]={
 
 long previousMillis = 0;
 long interval = 10000; 
+int post_interval = 1000;
 
 char ssid[] = "WLAN_16D2"; //  your network SSID (name) 
 char pass[] = "Z1460809D16D2";    // your network password (use for WPA, or use as key for WEP)
@@ -58,14 +59,14 @@ void Connection::begin(){ //init variables
   //*************************************************START WIFI-HILINK
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
-    Serial.println("WiFi shield not present"); 
+    //Serial.println("WiFi shield not present"); 
     // don't continue:
     while(true);
   } 
   
   // attempt to connect to Wifi network:
   while (status != WL_CONNECTED) { 
-    Serial.print("Attempting to connect to SSID: ");
+    //Serial.print("Attempting to connect to SSID: ");
     Serial.println(ssid);
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:    
     status = WiFi.begin(ssid, pass);
@@ -76,8 +77,8 @@ void Connection::begin(){ //init variables
   Serial.println("Connected to wifi");
   statusConn = STATUS_ONCONNECTION;
   printWifiStatus();
-  int tam = sizeof(bodyPOST);
-  Serial.println(tam);
+  //int tam = sizeof(bodyPOST);
+  //Serial.println(tam);
   Serial.println("\nStarting connection to server...");
   
   /* // not use, can delete
@@ -142,7 +143,7 @@ void Connection::printWifiStatus() {
 void Connection::readSerials(){
   
  unsigned long Starttime = millis();
- unsigned long Stoptime = Starttime + 30000;
+ unsigned long Stoptime = Starttime + post_interval;
  
   while (millis() < Stoptime){
     while (client.available()) {
@@ -162,7 +163,7 @@ void Connection::readSerials(){
     // do nothing forevermore:
     while(true);
   }  
- client.stop(); 
+ //client.stop(); 
 }
 
 // print data send
@@ -198,6 +199,8 @@ boolean Connection::sendQueryData(String data){
       return true;
   //}
 }
+
+
 
 //server mode function
 void Connection::serverReceive(){
@@ -283,8 +286,8 @@ void Connection::serverReceive(){
     Serial.println("Termina server");
   }
 }
-//**************************************************************************END WIFI-HILINK 
 
+//**************************************************************************END WIFI-HILINK 
 
 
 //**************************************************************************START WIFI-RN171
