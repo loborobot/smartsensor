@@ -10,7 +10,7 @@
 #include "Connection.h"
 #include "Constants.h"
 
-Sensors psensors__;//objeto Sensores
+Enviroment ambient;
 
 volatile int NbTopsFan; //measuring the rising edges of the signal (Flowmeter)
 int Calc;  // (Flowmeter)
@@ -33,7 +33,7 @@ void setup () {
   
   attachInterrupt(0, rpm, RISING); //and the interrupt is attached (Flowmeter)
   
-  psensors__.begin(); // call init sensor
+  ambient.begin(); // call init sensor
 }
 
 void loop () {
@@ -47,6 +47,6 @@ void loop () {
   // (Flowmeter)- end
   
   
-  psensors__.execute(Calc,vol);
+  ambient.execute(Calc,vol);
   //delay(2*60*1000);
 }
