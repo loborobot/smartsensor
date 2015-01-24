@@ -27,6 +27,21 @@ LiquidCrystal lcd(12, 11, 10, 8, 7, 6);
 
 void setup () {  
   
+//********************************************************** BEGIN LCD-2X16 ************************************************************  
+  lcd.begin(16, 2);
+  // Print a message to the LCD.
+  lcd.println("Sensor 1");  
+  lcd.println("Sensor 2");  
+  lcd.println("Sensor 3");  
+  lcd.println("Sensor 4");  
+  lcd.println("Sensor 5");  
+  lcd.println("Sensor 6");  
+  lcd.println("Sensor 7");  
+  lcd.println("Sensor 8");  
+  lcd.println("Sensor 9");  
+
+//********************************************************** END LCD-2X16 **************************************************************
+
   pinMode(FLOWMETER_PIN, INPUT); //initializes digital pin 2 as an input (Flowmeter)
   
   Serial.begin(115200);//9600
@@ -41,6 +56,18 @@ void setup () {
 }
 
 void loop () {
+
+  
+//********************************************************** BEGIN LCD-2X16 ************************************************************  
+  // Turn off the display:
+  lcd.noDisplay();
+  delay(500);
+   // Turn on the display:
+  lcd.display();
+  delay(500);
+//********************************************************** END LCD-2X16 **************************************************************
+
+
   // (Flowmeter) - start
   NbTopsFan = 0;   //Set NbTops to 0 ready for calculations
   //sei();      //Enables interrupts
