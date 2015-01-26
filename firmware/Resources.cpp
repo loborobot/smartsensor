@@ -28,7 +28,7 @@ void Resources::begin(){ //init variables
   RTC.begin();
   // run clock with time PC
   if (! RTC.isrunning()) {
-    RTC.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    RTC.adjust(DateTime(__DATE__, __TIME__));
   }
 }
 
