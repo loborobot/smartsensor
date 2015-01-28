@@ -4,13 +4,13 @@
 #include "Constants.h"
 
 //querys for test- not use necessary
-char reqGET[]="GET /api/ HTTP/1.0\n"
+char reqGET[]="GET /webapi/ HTTP/1.0\n"
 "Host: 192.168.1.200\n"
 "Accept: application/json\n"
 "Connection: close";
 
 //querys for test- not use necessary    
-char reqPOST[]="POST /api/update/ HTTP/1.0\n"
+char reqPOST[]="POST /webapi/update/ HTTP/1.0\n"
 "Host: 192.168.1.200\n"
 "Content-Type: application/json\n"
 "Accept: application/json\n"

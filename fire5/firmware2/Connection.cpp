@@ -5,13 +5,13 @@
 
 //querys for test- not use necessary
 char reqGET[]="GET /api/ HTTP/1.0\n"
-"Host: 192.168.1.200\n"
+"Host: remote-device.dyndns-ip.com\n"
 "Accept: application/json\n"
 "Connection: close";
 
 //querys for test- not use necessary    
 char reqPOST[]="POST /api/update/ HTTP/1.0\n"
-"Host: 192.168.1.200\n"
+"Host: remote-device.dyndns-ip.com\n"
 "Content-Type: application/json\n"
 "Accept: application/json\n"
 "Content-Length: 290\n"
@@ -28,7 +28,7 @@ uint32_t baud[7]={
 
 long previousMillis = 0;
 long interval = 10000; 
-int post_interval = 1000;
+int post_interval = 3000;
 
 char ssid[] = "WLAN_16D2"; //  your network SSID (name) 
 char pass[] = "Z1460809D16D2";    // your network password (use for WPA, or use as key for WEP)
@@ -38,7 +38,7 @@ int keyIndex = 0;            // your network key Index number (needed only for W
 int status = WL_IDLE_STATUS;
 // if you don't want to use DNS (and reduce your sketch size)
 // use the numeric IP instead of the name for the server:
-IPAddress server(192,168,1,200);  // numeric IP for Google (no DNS)
+IPAddress server(190,42,26,194);  // numeric IP for Google (no DNS)
 //char server[] = "192.168.1.200";    // name address for Google (using DNS)
 
 // Initialize the Ethernet client library

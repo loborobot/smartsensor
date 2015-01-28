@@ -5,13 +5,13 @@
 
 //querys for test- not use necessary
 char reqGET[]="GET /api/ HTTP/1.0\n"
-"Host: 192.168.1.200\n"
+"Host: smartsensor.herokuapp.com\n"
 "Accept: application/json\n"
 "Connection: close";
 
 //querys for test- not use necessary    
 char reqPOST[]="POST /api/update/ HTTP/1.0\n"
-"Host: 192.168.1.200\n"
+"Host: smartsensor.herokuapp.com\n"
 "Content-Type: application/json\n"
 "Accept: application/json\n"
 "Content-Length: 290\n"
@@ -28,7 +28,7 @@ uint32_t baud[7]={
 
 long previousMillis = 0;
 long interval = 10000; 
-int post_interval = 1000;
+int post_interval = 3000;
 
 char ssid[] = "WLAN_16D2"; //  your network SSID (name) 
 char pass[] = "Z1460809D16D2";    // your network password (use for WPA, or use as key for WEP)
@@ -38,7 +38,7 @@ int keyIndex = 0;            // your network key Index number (needed only for W
 int status = WL_IDLE_STATUS;
 // if you don't want to use DNS (and reduce your sketch size)
 // use the numeric IP instead of the name for the server:
-IPAddress server(192,168,1,200);  // numeric IP for Google (no DNS)
+IPAddress server(54,243,160,109);  // numeric IP for Google (no DNS)
 //char server[] = "192.168.1.200";    // name address for Google (using DNS)
 
 // Initialize the Ethernet client library
@@ -98,19 +98,23 @@ void Connection::begin(){ //init variables
   Serial.println();*/
   
   // if you get a connection, report back via serial:
-  if (client.connect(server, 8080)) {
+  if (client.connect(server, 80)) {
     Serial.println("connected to server");//send query for test, this part can delete
     client.println(reqPOST);
     for (int i=0; i<14; i++){  
       if(i == 1){
+        
         client.print(bodyJSON[1]);
-        client.print("2014-07-15T22:02:27.321Z");
+        client.print("2015-01-27T22:02:27.321Z");
+      
       }
       if(i >= 2){
         client.print(bodyJSON[i]);
-        if(i<13) client.print(2.3);
+        if(i<13)
+         client.print(2.3);
       }
       if(i==0)client.print(bodyJSON[i]);
+      
     }
     client.println();
     statusServer = STATUS_ONCONNECTION;
@@ -204,7 +208,7 @@ boolean Connection::sendQueryData(String data){
 
 //server mode function
 void Connection::serverReceive(){
-  WiFiRM04Server server(8080);
+  WiFiRM04Server server(80);
   server.begin();
   WiFiRM04Client client = server.available();
   if (client) {
@@ -223,7 +227,7 @@ void Connection::serverReceive(){
           
           // arduino web server: example of response
           // send a standard http response header
-          client.println("HTTP/1.1 200 OK");
+          client.println("HTTP/1.0 200 OK");
           client.println("Content-Type: text/html");
           client.println("Connection: close");  // the connection will be closed after completion of the response
           client.println("Refresh: 5");  // refresh the page automatically every 5 sec
@@ -306,7 +310,7 @@ void Connection::printData(String data){
 
 boolean Connection::sendQueryData(String data){
   if(enterCommandMode()){
-    if(open(SERVER[0], 8000)){
+    if(open(SERVER[0],  )){
       statusServer = STATUS_ONCONNECTION;
       for(int l=0; l<6; l++){
         if(l==4){

@@ -1,5 +1,5 @@
 // Define pins number for all sensors
-#define DHT_PIN 3 //pin DHT11 Digital
+#define DHT_PIN 9 //pin DHT11 Digital
 #define LDR_PIN A0 //pin LDR Analogico
 #define UV_PIN A5 //pin UV Analogico
 #define SOUND_PIN A4 //pin SOUND Analogico
@@ -52,16 +52,19 @@ int port = 8000; // the port, 80 for HTTP
 */
 
 // ip server
-static char* SERVER[1]={"smartsensor.herokuapp.com"};
+static char* SERVER[1]={"192.168.1.200"};
 
 // commans AT for set HLK-RM04 (not use because we use WiFiRM04 library)
 static char *commands_wifi_client[13]={
   "at+netmode=2\r\n",
   "at+wifi_conf=WLAN_16D2,wpa2_aes,Z1460809D16D2\r\n",
   "at+dhcpc=1\r\n",
-  "at+remoteip=54.243.160.109\r\n",
-  "at+remoteport=8000\r\n",
-  "at+remotepro=tcp\r\1\r\n",
+  "at+remoteip=190.42.26.194\r\n",
+  "at+remoteport=80\r\n",
+  "at+remotepro=tcp\r\n",
+  "at+timeout=0\r\n",
+  "at+mode=server\r\n",
+  "at+uart=115200,8,n,1\r\n",
   "at+uartpacklen=64\r\n",
   "at+uartpacktimeout=10\r\n",
   "at+net_commit=1\r\n",
@@ -71,7 +74,7 @@ static char *commands_wifi_client[13]={
 //query get for send serve
 static char* HTTPGET[4]={
   "GET /api/ HTTP/1.0",
-  "Host: smartsensor.herokuapp.com",
+  "Host: 190.42.26.194",
   "Accept: application/json",
   "Connection: close"
   };
@@ -83,10 +86,10 @@ static char* HTTPGET[4]={
 
 // query POST for send server
 static char* HTTPPOST[6]={
-  "POST /api/update/ HTTP/1.0\n",
-  "Host: smartsensor.herokuapp.com\n",
-  "Content-Type: application/json\n",
-  "Accept: application/json\n",
+  "POST /api/update/ HTTP/1.0",
+  "Host: 190.42.26.194",
+  "Content-Type: application/json",
+  "Accept: application/json",
   "Content-Length: ",
   "Connection: close\n"
   };
