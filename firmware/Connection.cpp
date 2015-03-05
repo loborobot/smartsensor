@@ -1,6 +1,6 @@
 #include "Connection.h"
 //#include "Resources.h"
-//#include "Sensors.h"
+#include "Sensors.h"
 #include "Constants.h"
 
 //querys for test- not use necessary
@@ -30,11 +30,16 @@ long previousMillis = 0;
 long interval = 10000; 
 int post_interval = 1000;
 
-char ssid[] = "WLAN_16D2"; //  your network SSID (name) 
-char pass[] = "Z1460809D16D2";    // your network password (use for WPA, or use as key for WEP)
+//char ssid[] = "WLAN_16D2"; //  your network SSID (name) 
+//char pass[] = "Z1460809D16D2";    // your network password (use for WPA, or use as key for WEP)
+
+String ssid = "WLAN_A490"; //  your network SSID (name) 
+String pass = "Z2C26C54CA490";    // your network password (use for WPA, or use as key for WEP)
+
 int keyIndex = 0;            // your network key Index number (needed only for WEP)
 
 //****************************************************************START WIFI-HILINK
+/*
 int status = WL_IDLE_STATUS;
 // if you don't want to use DNS (and reduce your sketch size)
 // use the numeric IP instead of the name for the server:
@@ -46,6 +51,7 @@ IPAddress server(192,168,1,200);  // numeric IP for Google (no DNS)
 // that you want to connect to (port 80 is default for HTTP):
 WiFiRM04Client client;
 String readString;
+*/
 //*******************************************************************END WIFI-HILINK
 
 void Connection::begin(){ //init variables
@@ -53,10 +59,14 @@ void Connection::begin(){ //init variables
   Serial.println("Start Wireless Config"); 
   statusConn = STATUS_OFFCONNECTION;
   statusServer = STATUS_OFFCONNECTION;
-  /*if(connect()){
+
+  if(attachWIFI()){
     statusConn = STATUS_ONCONNECTION;
-  }*/
+  }
+
+
   //*************************************************START WIFI-HILINK
+  /*
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
     //Serial.println("WiFi shield not present"); 
@@ -77,6 +87,7 @@ void Connection::begin(){ //init variables
   Serial.println("Connected to wifi");
   statusConn = STATUS_ONCONNECTION;
   printWifiStatus();
+  */
   //int tam = sizeof(bodyPOST);
   //Serial.println(tam);
   Serial.println("\nStarting connection to server...");
@@ -97,6 +108,8 @@ void Connection::begin(){ //init variables
   Serial.println();
   Serial.println();*/
   
+  
+  /*
   // if you get a connection, report back via serial:
   if (client.connect(server, 8000)) {
     Serial.println("connected to server");//send query for test, this part can delete
@@ -116,9 +129,11 @@ void Connection::begin(){ //init variables
     statusServer = STATUS_ONCONNECTION;
   }
   readSerials();
+   */
   
 }
 
+/*
 // function for printer information about connection
 void Connection::printWifiStatus() {
   // print the SSID of the network you're attached to:
@@ -286,12 +301,12 @@ void Connection::serverReceive(){
     Serial.println("Termina server");
   }
 }
-
+*/
 //**************************************************************************END WIFI-HILINK 
 
 
 //**************************************************************************START WIFI-RN171
-/*
+
 void Connection::printData(String data){
   for(int k=0; k<6; k++){
     if(k==4){
@@ -304,39 +319,170 @@ void Connection::printData(String data){
   Serial.println();
 }
 
-boolean Connection::sendQueryData(String data){
-  if(enterCommandMode()){
-    if(open(SERVER[0], 8000)){
-      statusServer = STATUS_ONCONNECTION;
-      for(int l=0; l<6; l++){
-        if(l==4){
-          Serial1.print(HTTPPOST[l]);
-          Serial1.println(data.length());
-          //client.print(HTTPPOST[l]);
-          //client.println(data.length());
-        }
-        else Serial1.println(HTTPPOST[l]);
-        //else client.println(HTTPPOST[l]);
-      }
-      Serial1.println(data);
-      Serial1.println();
-      if(close()) return true;
-      //client.println(data);
-      //client.println();
-      //readSerials();
+boolean Connection::connectTCP(const char *addr, int port) {
+
+  if (connected) {
+    disconnectTCP();
+  } 
+
+  if (enterCommandMode())
+  {
+    Serial1.print("open ");
+    Serial1.print(addr);
+    Serial1.print(" ");
+    Serial1.print(port);
+    Serial1.println("\r");
+    if (findInResponse("*OPEN*", 3000)) 
+    {
+      connected = true;
+      return true;
     }
+    else return false;
   }
-  else{
+  enterCommandMode();
+  return false;
+}
+
+boolean Connection::disconnectTCP() {
+  if (!connected) {
+    return true;
+  }
+  Serial1.println("close\r");
+  if (findInResponse("*CLOS*", 3000)) {
+    connected = false;
+    return true;
+  }
+  connected = false;
+  return false;
+}
+
+boolean Connection::attachWIFI(){
+
+  if(enterCommandMode()){
+    #ifdef DEBUG_ON
+      Serial.println("sending commads to module");
+    #endif
+
+    Serial1.println("set wlan auth 4\r");delay(1000);
+    Serial1.println("set ip dhcp 1\r");delay(1000);
+    Serial1.println("set ip proto 10\r");delay(1000);
+    Serial1.println("set wlan ssid WLAN_16D2\r");delay(1000);
+    Serial1.println("set wlan phrase Z1460809D16D2\r");delay(1000);
+    Serial1.println("set comm remote 0");delay(1000);
+    Serial1.println("set wlan linkmon 5\r");delay(1000);
+    Serial1.println("set wlan channel 0\r");delay(1000);
+    Serial1.println("set wlan join 1\r");delay(1000);
+    Serial1.println("save\r");delay(1000);
+    Serial1.println("reboot\r");
+    
+    #ifdef DEBUG_ON
+      Serial.println("all commands were sended");
+    #endif
+    return true;
+  } else{
+    Serial.println("debugrepair");
     repair();
     return false;
   }
+} 
+
+
+boolean Connection::httpPOST(const char* server, int port){
+  
+  char itoaBuffer[8];
+  byte n_of_at=0;
+  byte i;
+  
+  if(!enterCommandMode()){
+    #if DEBUG_MODE
+      Serial.println("It can't enter in Command Mode");
+    #endif
+    repair();
+    return false;
+  }else{
+  
+    while(n_of_at<3){
+        
+        if(!connectTCP(server, port)){
+
+          #if DEBUG_MODE
+            Serial.println("It can't enter in Command Mode");
+          #endif
+            n_of_at++;
+        } else {
+            n_of_at = 3;
+            connected = true;
+        }
+          
+    }
+    
+    if(!connected) return 0;    
+    
+    statusServer = STATUS_ONCONNECTION;
+    
+    for(i=0; i<6; i++){
+      if(i==4){
+        Serial1.print(HTTPPOST[i]);
+        //itoa(strlen(data),itoaBuffer,10);
+        Serial1.println(itoaBuffer);
+      } else
+        Serial1.println(HTTPPOST[i]);
+    }
+
+    Serial1.println();
+#if DEBUG_MODE
+
+    for(i = 0; i<SENSORS_NUMBER; i++){
+      Serial1.print(bodyJSON2[i]);
+      Serial1.print(value_sensors[i]);
+      Serial.println(bodyJSON2[i]);
+      Serial.print(value_sensors[i]); 
+    
+    }
+    
+    Serial1.print(bodyJSON1[i]);
+    Serial1.print(value_sensors[i]);
+    Serial.print(bodyJSON1[i]);
+    Serial.print(value_sensors[i]);
+    
+    Serial1.print(bodyJSON1[i+1]);
+    Serial1.print(value_sensors[i+1]);
+    Serial.print(bodyJSON1[i+1]);
+    Serial.print(value_sensors[i+1]);
+    
+    Serial1.print(bodyJSON1[i+2]);
+    Serial1.print(value_sensors[i+2]);
+    Serial1.println();
+    Serial.print(bodyJSON1[i+2]);
+    Serial.print(value_sensors[i+2]);
+    Serial.println();
+#else
+    for(i = 0; i<SENSORS_NUMBER; i++){
+      Serial1.print(bodyJSON2[i]);
+      Serial1.print(value_sensors[i]);
+       
+    }
+    
+    Serial1.print(bodyJSON1[i]);
+    Serial1.print(value_sensors[i]);
+    Serial1.print(bodyJSON1[i+1]);
+    Serial1.print(value_sensors[i+1]);
+    Serial1.print(bodyJSON1[i+2]);
+    Serial1.print(value_sensors[i+2]);
+    Serial1.println();
+#endif
+    
+    return true;
+    //if(close()) return true;
+  
+  }  
+  
 }
 
 
 
 
-boolean Connection::findInResponse(const char *toMatch,
-unsigned int timeOut = 1000) {
+boolean Connection::findInResponse(const char *toMatch, unsigned int timeOut = 1000) {
   int byteRead;
 
   unsigned long timeOutTarget; // in milliseconds
@@ -370,78 +516,39 @@ unsigned int timeOut = 1000) {
 }
 
 boolean Connection::enterCommandMode() {
+    #ifdef DEBUG_ON
+      Serial.println("entering command mode");
+    #endif
+    
     delay(COMMAND_MODE_GUARD_TIME);
-    Serial1.print(F("$$$"));
+    Serial1.write("$$$");
     delay(COMMAND_MODE_GUARD_TIME);
     Serial1.println();
-    Serial1.println();
+   
     if (findInResponse("\r\n<", 1000))
     {
       return true;
     }
-  return false;
-}
-
-boolean Connection::connect(){
-  Serial.println("Connecting..");
-  if(enterCommandMode()){
-    Serial.println("inicio config");
-    Serial1.println("set wlan auth 4\r");delay(1000);
-    Serial1.println("set ip dhcp 1\r");delay(1000);
-    Serial1.println("set ip proto 10\r");delay(1000);
-    Serial1.println("set wlan ssid WLAN_16D2\r");delay(1000);
-    Serial1.println("set wlan phrase Z1460809D16D2\r");delay(1000);
-    Serial1.println("set comm remote 0");delay(1000);
-    Serial1.println("set wlan linkmon 5\r");delay(1000);
-    Serial1.println("set wlan channel 0\r");delay(1000);
-    Serial1.println("set wlan join 1\r");delay(1000);
-    Serial1.println("save\r");delay(1000);
-    Serial1.println("reboot\r");
-    Serial.println("fin config");
-    return true;
-  }
-  else{
-    repair();
+  
     return false;
-  }
-} 
-
-
-boolean Connection::open(const char *addr, int port) {
-
-  if (connected) {
-    close();
-  } 
-  if (enterCommandMode())
-  {
-    Serial1.print("open ");
-    Serial1.print(addr);
-    Serial1.print(" ");
-    Serial1.print(port);
-    Serial1.println("\r");
-    if (findInResponse("*OPEN*", 3000)) 
-    {
-      connected = true;
-      return true;
-    }
-    else return false;
-  }
-  enterCommandMode();
-  return false;
 }
 
-boolean Connection::close() {
-  if (!connected) {
-    return true;
-  }
-  Serial1.println("close\r");
-  if (findInResponse("*CLOS*", 3000)) {
-    connected = false;
-    return true;
-  }
-  connected = false;
-  return false;
-}
+
+
+String cmds[] = {
+"set wlan auth 4",
+"set ip dhcp 1", 
+"set ip proto 10 ",
+"set wlan phrase " + pass,
+"set wlan ssid " + ssid,
+"set channel 0",
+"set wlan join 1",
+"save",
+"reboot"
+"" // Required. Indicates the last item when
+}; 
+
+
 
 
 boolean Connection::reset() {
@@ -469,7 +576,7 @@ void Connection::repair(){
     }
   }
 }
-*/
+
 //***************************************************************END WIFI-RN171
 
 

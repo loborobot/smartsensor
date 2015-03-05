@@ -1,11 +1,23 @@
+//#ifndef __CONSTANST_H__
+//#define __CONSTANST_H__
+
 // Define pins number for all sensors
 #define DHT_PIN 8 //pin DHT11 Digital
 #define LDR_PIN A0 //pin LDR Analogico
 #define UV_PIN A5 //pin UV Analogico
 #define SOUND_PIN 4 //pin SOUND Analogico
-#define FLOWMETER_PIN 4 //pin CAUDAL Digital
 #define CO2_PIN A2  //pin CO2 analogico
 #define NO2_PIN A1  //pin NO2 analogico
+#define FLOWMETER_PIN 3 //pin CAUDAL Digital
+
+// digital pins for interrruptions to ATMega32U4
+#define INT0 0 // Digital pin 3  
+#define INT1 1 // Digital pin 2
+#define INT2 2 // Digital pin 0 
+#define INT3 3 // Digital pin 1
+#define INT4 4 // Digital pin 7
+
+#define ENABLED_INT_FLOWMETER true
 
 /*
 #define SCAPE_PIN  21
@@ -22,6 +34,10 @@
 #define STATUS_ONCONNECTION true
 
 #define COMMAND_MODE_GUARD_TIME 250 // in milliseconds
+#define DEBUG_ON
+
+
+
 
 //==============GPRS using GSM.h==========
 /*
@@ -51,8 +67,12 @@ int port = 8000; // the port, 80 for HTTP
 #define GPRS_PASSWORD  "amx" // replace with your GPRS password
 */
 
+
 // ip server
-static char* SERVER[1]={"192.168.1.200"};
+//static char* SERVER[1]={"192.168.1.200"};
+static char SERVER[] = "remote-device.dyndns-at-work.com";
+//String SERVER =  "remote-device.dyndns-at-work.com";
+int PORT = 8080;
 
 // commans AT for set HLK-RM04 (not use because we use WiFiRM04 library)
 static char *commands_wifi_client[13]={
@@ -68,13 +88,13 @@ static char *commands_wifi_client[13]={
   "at+uartpacklen=64\r\n",
   "at+uartpacktimeout=10\r\n",
   "at+net_commit=1\r\n",
-  "at+reconn=1\r\n",
+  "at+reconn=1\r\n"
   };
 
 //query get for send serve
 static char* HTTPGET[4]={
   "GET /api/ HTTP/1.0",
-  "Host: 192.168.1.200",
+  "Host: remote-device.dyndns-ip.com",
   "Accept: application/json",
   "Connection: close"
   };
@@ -87,7 +107,7 @@ static char* HTTPGET[4]={
 // query POST for send server
 static char* HTTPPOST[6]={
   "POST /api/update/ HTTP/1.0",
-  "Host: 192.168.1.200",
+  "Host: remote-device.dyndns-ip.com ",
   "Content-Type: application/json",
   "Accept: application/json",
   "Content-Length: ",
@@ -134,5 +154,22 @@ static char* JSONREQ[10]={
   "\",\"carbon_monoxide\": \"", 
   "\"}"
   };
-
-
+  
+// 3: data JSON structue               
+static char* bodyJSON2[14]={
+  "{\"temp\": ",
+  ",\"hum\": ",
+  ",\"light\": ",
+  ",\"uv\": ",
+  ",\"sound\": ",
+  ",\"flowmeter\": ",
+  ",\"volume\": ",
+  ",\"no2\": ",
+  ",\"co\": ",
+  ",\"latitude\": ",
+  ",\"longitude\": ",
+  ",\"timestamp\": \"",
+  "\",\"device\": \"166d77ac1b46a1ec38aa35ab7e628ab5\"",
+  "}"
+  };
+//#endif __CONSTANST_H__

@@ -3,7 +3,10 @@
 
 #include <Arduino.h>
 #include <string.h>
-#include <WiFiRM04.h>
+//#include <WiFiRM04.h>
+
+#define TX_SERIAL 2
+#define RX_SERIAL 3
 
 // class connection with WiFi/GSM
 class Connection
@@ -18,19 +21,19 @@ public:
   void readSerials();
   
   void printData(String data);
-  boolean sendQueryData(String data);
+  boolean httpPOST(const char* server, int port);
   void serverReceive();
   
-    /* RN-171
+  // RN-171
   boolean findInResponse(const char *toMatch,
                            unsigned int timeOut);
   boolean enterCommandMode();
-  boolean connect();
-  boolean open(const char *addr, int port);
-  boolean close();
+  boolean attachWIFI();
+  boolean connectTCP(const char *addr, int port);
+  boolean disconnectTCP();
   boolean reset();
   void repair();
-  */
+ 
   
   /* HLK-RM04
   void activeModeAT();

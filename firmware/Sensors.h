@@ -5,6 +5,12 @@
 #include <string.h>
 
 // class sensors
+
+#define SENSORS_NUMBER 11
+
+
+long value_sensors[SENSORS_NUMBER];
+
 class Sensors
 {
 public:
@@ -25,8 +31,8 @@ public:
   boolean dataUpdate;
   
   void begin();
-  void execute(int flo, int vol);
-  String  strucData(int flo, int vol);
+  void execute();
+  char*  buildJSON(int flo, int vol);
   char* convertF2C(float val);
   
   uint8_t readDataDHT();
@@ -36,8 +42,7 @@ public:
   char* readDataFlowmeter(int flat);
   char* readDataCO2();
   char* readDataNO2();
-  volatile int NbTopsFanSen; //measuring the rising edges of the signal
-
+   
 private:
 };
 #endif
