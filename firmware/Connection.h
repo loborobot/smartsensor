@@ -2,8 +2,6 @@
 #define __CONNECTION_H__
 
 #include <Arduino.h>
-#include <string.h>
-//#include <WiFiRM04.h>
 
 #define TX_SERIAL 2
 #define RX_SERIAL 3
@@ -20,8 +18,7 @@ public:
   void printWifiStatus();
   void readSerials();
   
-  void printData(String data);
-  boolean httpPOST(const char* server, int port);
+  boolean remotePOST(const char* server, int port);
   void serverReceive();
   
   // RN-171
@@ -33,8 +30,7 @@ public:
   boolean disconnectTCP();
   boolean reset();
   void repair();
- 
-  
+   
   /* HLK-RM04
   void activeModeAT();
   void setConnection();

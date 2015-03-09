@@ -1,7 +1,6 @@
 #include "Connection.h"
-//#include "Resources.h"
-#include "Sensors.h"
 #include "Constants.h"
+#include "Sensors.h"
 
 //querys for test- not use necessary
 char reqGET[]="GET /api/ HTTP/1.0\n"
@@ -307,18 +306,6 @@ void Connection::serverReceive(){
 
 //**************************************************************************START WIFI-RN171
 
-void Connection::printData(String data){
-  for(int k=0; k<6; k++){
-    if(k==4){
-      Serial.print(HTTPPOST[k]);
-      Serial.println(data.length());
-    }
-    else Serial.println(HTTPPOST[k]);
-  }
-  Serial.println(data);
-  Serial.println();
-}
-
 boolean Connection::connectTCP(const char *addr, int port) {
 
   if (connected) {
@@ -359,7 +346,7 @@ boolean Connection::disconnectTCP() {
 boolean Connection::attachWIFI(){
 
   if(enterCommandMode()){
-    #ifdef DEBUG_ON
+    #ifdef DEBUG_MODE
       Serial.println("sending commads to module");
     #endif
 
@@ -375,7 +362,7 @@ boolean Connection::attachWIFI(){
     Serial1.println("save\r");delay(1000);
     Serial1.println("reboot\r");
     
-    #ifdef DEBUG_ON
+    #ifdef DEBUG_MODE
       Serial.println("all commands were sended");
     #endif
     return true;
@@ -386,8 +373,7 @@ boolean Connection::attachWIFI(){
   }
 } 
 
-
-boolean Connection::httpPOST(const char* server, int port){
+boolean Connection::remotePOST(const char* server, int port){
   
   char itoaBuffer[8];
   byte n_of_at=0;
@@ -430,57 +416,46 @@ boolean Connection::httpPOST(const char* server, int port){
     }
 
     Serial1.println();
-#if DEBUG_MODE
 
-    for(i = 0; i<SENSORS_NUMBER; i++){
-      Serial1.print(bodyJSON2[i]);
-      Serial1.print(value_sensors[i]);
-      Serial.println(bodyJSON2[i]);
-      Serial.print(value_sensors[i]); 
-    
-    }
-    
-    Serial1.print(bodyJSON1[i]);
-    Serial1.print(value_sensors[i]);
-    Serial.print(bodyJSON1[i]);
-    Serial.print(value_sensors[i]);
-    
-    Serial1.print(bodyJSON1[i+1]);
-    Serial1.print(value_sensors[i+1]);
-    Serial.print(bodyJSON1[i+1]);
-    Serial.print(value_sensors[i+1]);
-    
-    Serial1.print(bodyJSON1[i+2]);
-    Serial1.print(value_sensors[i+2]);
-    Serial1.println();
-    Serial.print(bodyJSON1[i+2]);
-    Serial.print(value_sensors[i+2]);
-    Serial.println();
-#else
     for(i = 0; i<SENSORS_NUMBER; i++){
       Serial1.print(bodyJSON2[i]);
       Serial1.print(value_sensors[i]);
        
     }
     
-    Serial1.print(bodyJSON1[i]);
+    Serial1.print(bodyJSON2[i]);
     Serial1.print(value_sensors[i]);
-    Serial1.print(bodyJSON1[i+1]);
+    Serial1.print(bodyJSON2[i+1]);
     Serial1.print(value_sensors[i+1]);
-    Serial1.print(bodyJSON1[i+2]);
+    Serial1.print(bodyJSON2[i+2]);
     Serial1.print(value_sensors[i+2]);
     Serial1.println();
+
+#if DEBUG_MODE
+
+     for(i = 0; i<SENSORS_NUMBER; i++){
+      Serial.println(bodyJSON2[i]);
+      Serial.print(value_sensors[i]);  
+    }
+    
+    Serial.print(bodyJSON2[i]);
+    Serial.print(value_sensors[i]);
+    
+    Serial.print(bodyJSON2[i+1]);
+    Serial.print(value_sensors[i+1]);
+    
+    Serial.print(bodyJSON2[i+2]);
+    Serial.print(value_sensors[i+2]);
+    Serial.println();
 #endif
     
-    return true;
-    //if(close()) return true;
+   //if(close()) return true;
   
-  }  
+  }//end else  
+
+  return true;
   
 }
-
-
-
 
 boolean Connection::findInResponse(const char *toMatch, unsigned int timeOut = 1000) {
   int byteRead;

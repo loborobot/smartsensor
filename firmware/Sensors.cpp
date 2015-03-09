@@ -31,20 +31,27 @@ void isr_function(){
   pulses++;  
 }
 
-float getFlowMeter(){
+float Sensors::getFlowMeter(){
   
-  NbTopsFanSen = 0;  
+  pulses = 0;  
   sei();     
   delay (1000);   //Wait 1 second
   cli();      
   //_flowmeter = ((NbTopsFanSen * 60 / 5.5)/60); //(Pulse frequency x 60) / 5.5Q, = flow rate in L/hour 
-  _flowmeter = (NbTopsFan/7.5)*60; //(Pulse frequency x 60) / 7.5Q, = flow rate 
+  _flowmeter = (pulses/7.5)*60; //(Pulse frequency x 60) / 7.5Q, = flow rate 
   _volume = (_flowmeter * 1); // m3/min
  //if(flat == 1) return convertF2C(_flowmeter);
  //else return convertF2C(_volume);
 }
 
 void Sensors::begin(){ //init variables
+
+  Serial.begin(9600);//9600
+  Serial1.begin(9600);//9600
+
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for Leonardo only
+  } 
 
 #if DEBUG_MODE
       Serial.println("Start Sensonrs Config"); 
@@ -54,19 +61,10 @@ void Sensors::begin(){ //init variables
   
 #if ENABLED_INT_FLOWMETER  
   pinMode(FLOWMETER_PIN, INPUT); //initializes digital pin 2 as an input (Flowmeter)
-  attachInterrupt(INT0, rpm, RISING); 
+  attachInterrupt(INT0, isr_function, RISING); 
 #endif
   
-  // calibrate during the first five seconds 
-  /*while (millis() < 5000) {
-    _valueLDR = analogRead(LDR_PIN);
-    // record the maximum sensor value
-    if (_valueLDR > _valLDRmax) {_valLDRmax = _valueLDR;}
-    // record the minimum sensor value
-    if (_valueLDR < _valLDRmin) {_valLDRmin = _valueLDR;}
-  }*/
 }
-
 
 void Sensors::execute(){ // init program
 
@@ -76,7 +74,7 @@ void Sensors::execute(){ // init program
 
   sensorsUpdate();
   
-  if(connection.httpPOST("a", 10)){
+  if(connection.remotePOST("a", PORT)){
     sendData = true;
   }
   else{
@@ -88,7 +86,7 @@ void Sensors::execute(){ // init program
 
 }
 
-uint8_t Sensors::readDataDHT() // temperature and humidity function
+uint8_t Sensors::readDataDHT()
 {
 	// BUFFER TO RECEIVE
 	uint8_t bits[5];
@@ -148,85 +146,29 @@ uint8_t Sensors::readDataDHT() // temperature and humidity function
 	return 0; //  0 : OK
 }
 
-int Sensors::readDataLDR() // LDR function
-{
-  
-  //Serial.print("temperature: ");Serial.println(humidity);
-  //Serial.print("humedad: ");Serial.println(temperature);
+float Sensors::getLDR(){
   _valueLDR = analogRead(LDR_PIN);
-  //Serial.print("ldr: ");Serial.println(_valueLDR);
-  //_valueLDR = map(analogRead(LDR_PIN), _valLDRmin, _valLDRmax, 0, 255);
-  //_valueLDR = constrain(_valueLDR, 0, 255);
-  return _valueLDR;
   
-  /*if(_valueLDR < 5) return 0.0;
-  if(_valueLDR>=5 && _valueLDR <= 36){
+  if(_valueLDR < 5) return 0.0;
+  
+  if(_valueLDR>=5 && _valueLDR < 36){
     _valueLDR = map(_valueLDR, 5, 36, 1, 10);
     _valueLDR = _valueLDR/10;
-    return 0;
-  }
-  if(_valueLDR>36 && _valueLDR <= 215){
+  }else if(_valueLDR >= 36 && _valueLDR < 215){
     _valueLDR = map(_valueLDR, 36, 215, 1, 10);
-    return 0; 
-  }
-  if(_valueLDR>215 && _valueLDR <= 477){
+    
+  }else if(_valueLDR >= 215 && _valueLDR < 477){
     _valueLDR = map(_valueLDR, 215, 477, 10, 40);
-    return 0;
-  }
-  if(_valueLDR>477 && _valueLDR <= 673){
+  }else if(_valueLDR >= 477 && _valueLDR < 673){
     _valueLDR = map(_valueLDR, 477, 673, 40, 100);
-    return 0;
-  }
-  if (_valueLDR>673 && _valueLDR <= 795){
+  }else if(_valueLDR >= 673 && _valueLDR < 795){
     _valueLDR = map(_valueLDR, 673, 795, 100, 200);
-    return 0;
-  }
-  if(_valueLDR>795 && _valueLDR <= 955){
+  }else if(_valueLDR >= 795 && _valueLDR < 955){
     _valueLDR = map(_valueLDR, 795, 955, 200, 1000);
-    return 0;
-  }
-  if(_valueLDR>795 && _valueLDR <= 955){
-    _valueLDR = map(_valueLDR, 795, 955, 200, 1000);
-    return 0;
-  }
-  if(_valueLDR > 1000) return -1;*/
-}
-
-char* Sensors::readDataUV(){ // UV function
-  _valueUV = analogRead(UV_PIN);
-  //Serial.print("uv: ");Serial.println(_valueUV);
-  //_valueUV = map(analogRead(UV_PIN), 0, 30, 0, 15); // read pinUV
-  return convertF2C(_valueUV);
-}
-
-char* Sensors::readDataSound(){
-  _sound = analogRead(SOUND_PIN);
-  //Serial.print("sonido: ");Serial.println(_sound);
- // _sound = map(analogRead(SOUND_PIN), 0, 1023, 0, 100); //Sound
- return convertF2C(_sound);
-}
-
-char* Sensors::readDataFlowmeter(int flat){
-  
-  NbTopsFanSen = 0;   //Set NbTops to 0 ready for calculations
-  sei();      //Enables interrupts
-  delay (1000);   //Wait 1 second
-  cli();      //Disable interrupts
-  //_flowmeter = ((NbTopsFanSen * 60 / 5.5)/60); //(Pulse frequency x 60) / 5.5Q, = flow rate in L/hour 
-  _flowmeter = (NbTopsFan/7.5)*60; //(Pulse frequency x 60) / 7.5Q, = flow rate 
-  _volume = (_flowmeter * 1); // m3/min
- if(flat == 1) return convertF2C(_flowmeter);
- else return convertF2C(_volume);
-}
-
-char* Sensors::readDataCO2(){ //cos2 function
-  _CO2 = analogRead(CO2_PIN);
-  return convertF2C(_CO2);
-}
-
-char* Sensors::readDataNO2(){ //no2 funcion
-  _NO2 = analogRead(NO2_PIN);
-  //return convertF2C(_NO2);
+  }else
+    _valueLDR = map(_valueLDR, 955, 1023, 100, 10000);
+    
+  return _valueLDR;
 }
 
 float Sensors::getUV(){
@@ -237,48 +179,27 @@ float Sensors::getUV(){
 
 float Sensors::getNoise(){
   _sound = analogRead(SOUND_PIN);
-  //Serial.print("sonido: ");Serial.println(_sound);
- // _sound = map(analogRead(SOUND_PIN), 0, 1023, 0, 100); //Sound
- return _sound;
+  
+  if(_sound < 2)
+    _sound = map(_sound, 0, 2, 1, 2);
+  else 
+    _sound = map(_sound, 3, 1023, 3, 1023);  
+  
+  _sound = 20*log10(_sound);
+ 
+  return _sound;
 }
 
+float Sensors::getCO2(){ 
+  _CO2 = analogRead(CO2_PIN);
+  return _CO2;
+}
 
+float  Sensors::getNO2(){ 
+  _NO2 = analogRead(NO2_PIN);
+  _NO2 = map(_NO2, 0, 1023, 0, 1000);
+  return _NO2;
 
-// strtc data function
-char* Sensors::buildJSON(int flo, int vol){
-  int i = 0;
-  char data[];
-  
-  uint8_t check = readDataDHT();
-  
-  data += bodyJSON[i];
-  data += bodyJSON[i+1];
-  data += presc__.RTCread();
-  data += bodyJSON[i+2];
-  data += convertF2C(temperature);
-  data += bodyJSON[i+3];
-  data += convertF2C(humidity);
-  data += bodyJSON[i+4];
-  data += readDataLDR();
-  data += bodyJSON[i+5];
-  data += readDataUV();
-  data += bodyJSON[i+6];
-  data += readDataSound();
-  data += bodyJSON[i+7];
-  data += convertF2C(flo);
-  data += bodyJSON[i+8];
-  data += convertF2C(vol);
-  data += bodyJSON[i+9];
-  data += readDataNO2();
-  data += bodyJSON[i+10];
-  data += readDataCO2();
-  data += bodyJSON[i+11];
-  data += "-16.40370";
-  data += bodyJSON[i+12];
-  data += "-71.53064";
-  data += bodyJSON[i+13];
-  
-  return data;
 }
 
 void Sensors::sensorsUpdate(){
@@ -288,26 +209,26 @@ void Sensors::sensorsUpdate(){
   presc__.RTCread();
   value_sensors[0] = temperature;
   value_sensors[1] = humidity;   
-  value_sensors[2] = readDataLDR();
-  value_sensors[3] = readDataUV();
-  value_sensors[4] = readDataSound();
+  value_sensors[2] = getLDR();
+  value_sensors[3] = getUV();
+  value_sensors[4] = getNoise();
   
 #if ENABLED_INT_FLOWMETER  
   value_sensors[5] = _flowmeter;
-  value_sensors[6] = _volument; 
+  value_sensors[6] = _volume; 
 #else
   value_sensors[5] = -1.0;
   value_sensors[6] = -1.0;
 #endif  
 
-  value_sensors[7] = readDataNO2();
-  value_sensors[8] = readDataCO2(); 
+  value_sensors[7] = getNO2();
+  value_sensors[8] = getCO2(); 
 
 #if HAS_GPS
   long latLgt[3];
-  getLat(latLgt);
-  value_sensors[9] = lat[0];
-  value_sensors[10] = lat[1];
+  getLatLgt(latLgt);
+  value_sensors[9] = latLgt[0];
+  value_sensors[10] = latLgt[1];
 #else
   value_sensors[9] = -1.0;
   value_sensors[10] = -1.0;
@@ -315,8 +236,3 @@ void Sensors::sensorsUpdate(){
   
 }
 
-// convert float to string function
-char* Sensors::convertF2C(float val){
-  static char dtostrfbuffer[10];
-  return dtostrf(val,5, 2, dtostrfbuffer);
-}

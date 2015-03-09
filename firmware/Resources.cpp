@@ -13,6 +13,7 @@ RTC_DS1307 RTC; // object to RTC
 //File logFile;
 
 void Resources::begin(){ //init variables
+  
   Serial.println("Resources Config");
   //pinMode(10, OUTPUT);
   //if (!SD.begin(4)) {

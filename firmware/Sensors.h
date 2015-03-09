@@ -2,12 +2,8 @@
 #define __SENSORS_H__
 
 #include <Arduino.h>
-#include <string.h>
-
-// class sensors
 
 #define SENSORS_NUMBER 11
-
 
 long value_sensors[SENSORS_NUMBER];
 
@@ -32,17 +28,20 @@ public:
   
   void begin();
   void execute();
-  char*  buildJSON(int flo, int vol);
-  char* convertF2C(float val);
-  
+ 
   uint8_t readDataDHT();
-  int readDataLDR();
-  char* readDataUV();
-  char* readDataSound();
-  char* readDataFlowmeter(int flat);
-  char* readDataCO2();
-  char* readDataNO2();
-   
+  float getLDR();
+  float getUV();
+  float getNoise();
+  float getFlowMeter();
+  float getCO2();
+  float getNO2();
+  void sensorsUpdate(); 
+
+#if HAS_GPS
+  long latLgt[3];
+  void getLatLgt(long latLgt[]);
+#endif
 private:
 };
 #endif

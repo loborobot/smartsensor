@@ -1,5 +1,5 @@
-//#ifndef __CONSTANST_H__
-//#define __CONSTANST_H__
+#ifndef __CONSTANST_H__
+#define __CONSTANST_H__
 
 // Define pins number for all sensors
 #define DHT_PIN 8 //pin DHT11 Digital
@@ -34,8 +34,8 @@
 #define STATUS_ONCONNECTION true
 
 #define COMMAND_MODE_GUARD_TIME 250 // in milliseconds
-#define DEBUG_ON
-
+#define DEBUG_MODE true
+#define HAS_GPS true
 
 
 
@@ -172,4 +172,5 @@ static char* bodyJSON2[14]={
   "\",\"device\": \"166d77ac1b46a1ec38aa35ab7e628ab5\"",
   "}"
   };
-//#endif __CONSTANST_H__
+
+#endif
