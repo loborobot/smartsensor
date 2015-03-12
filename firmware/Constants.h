@@ -1,15 +1,19 @@
 #ifndef __CONSTANST_H__
 #define __CONSTANST_H__
 
-// Define pins number for all sensors
-#define DHT_PIN 8 //pin DHT11 Digital
+#define STR1(z) #z
+#define STR(z) STR1(z)
+#define CONCAT(a,b,c) a STR(b) c
+
+#define DHT_PIN 9              
 #define LDR_PIN A0 //pin LDR Analogico
 #define UV_PIN A5 //pin UV Analogico
-#define SOUND_PIN 4 //pin SOUND Analogico
+#define SOUND_PIN A4 //pin SOUND Analogico
 #define CO2_PIN A2  //pin CO2 analogico
 #define NO2_PIN A1  //pin NO2 analogico
-#define FLOWMETER_PIN 3 //pin CAUDAL Digital
+#define FLOWMETER_PIN 2 //pin CAUDAL Digital
 
+// 13 -10 para softserial
 // digital pins for interrruptions to ATMega32U4
 #define INT0 0 // Digital pin 3  
 #define INT1 1 // Digital pin 2
@@ -17,7 +21,7 @@
 #define INT3 3 // Digital pin 1
 #define INT4 4 // Digital pin 7
 
-#define ENABLED_INT_FLOWMETER true
+#define ENABLED_INT_FLOWMETER false
 
 /*
 #define SCAPE_PIN  21
@@ -37,8 +41,6 @@
 #define DEBUG_MODE true
 #define HAS_GPS true
 
-
-
 //==============GPRS using GSM.h==========
 /*
 // PIN number if necessary
@@ -53,6 +55,7 @@ char server[] = "190.42.34.239"; // the base URL
 char path[] = "/api/devices/"; // the path
 int port = 8000; // the port, 80 for HTTP
 */
+
 //============== GPRS end using GSM.h===========
 /*
 #define ONGPRS true
@@ -67,12 +70,11 @@ int port = 8000; // the port, 80 for HTTP
 #define GPRS_PASSWORD  "amx" // replace with your GPRS password
 */
 
-
 // ip server
 //static char* SERVER[1]={"192.168.1.200"};
-static char SERVER[] = "remote-device.dyndns-at-work.com";
+static char SERVER[] = "http://remote-device.dyndns-at-work.com";
 //String SERVER =  "remote-device.dyndns-at-work.com";
-int PORT = 8080;
+#define PORT 8080
 
 // commans AT for set HLK-RM04 (not use because we use WiFiRM04 library)
 static char *commands_wifi_client[13]={

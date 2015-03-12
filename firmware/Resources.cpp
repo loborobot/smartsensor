@@ -14,7 +14,7 @@ RTC_DS1307 RTC; // object to RTC
 
 void Resources::begin(){ //init variables
   
-  Serial.println("Resources Config");
+  Serial.println(F("Resources Config"));
   //pinMode(10, OUTPUT);
   //if (!SD.begin(4)) {
     //Serial.println("SD Card initialization failed");

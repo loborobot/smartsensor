@@ -5,7 +5,6 @@
 
 #define SENSORS_NUMBER 11
 
-long value_sensors[SENSORS_NUMBER];
 
 class Sensors
 {
@@ -23,7 +22,6 @@ public:
   float _NO2;
   float _CO2;*/
   
-  //char* _valSensor[9];
   boolean dataUpdate;
   
   void begin();
@@ -37,11 +35,10 @@ public:
   float getCO2();
   float getNO2();
   void sensorsUpdate(); 
+  void readSerials();
 
-#if HAS_GPS
   long latLgt[3];
-  void getLatLgt(long latLgt[]);
-#endif
+  //void getLatLgt(long *latLgt);
 private:
 };
 #endif

@@ -5,7 +5,7 @@
 #include "Connection.h"
 
 // pointers for call object
-Sensors psens__;
+Sensors sensor;
 Resources presc__;
 Connection connection;
 
@@ -25,11 +25,14 @@ float _volume ;
 float _NO2;
 float _CO2;
 
+long value_sensors[SENSORS_NUMBER];
+
 volatile uint16_t pulses;
 
-void isr_function(){
+void ISRFuncFlowmeter(){
   pulses++;  
 }
+
 
 float Sensors::getFlowMeter(){
   
@@ -46,24 +49,45 @@ float Sensors::getFlowMeter(){
 
 void Sensors::begin(){ //init variables
 
-  Serial.begin(9600);//9600
+  Serial.begin(115200);//9600
   Serial1.begin(9600);//9600
-
+  /*
   while (!Serial) {
     ; // wait for serial port to connect. Needed for Leonardo only
-  } 
+    
+  } */
 
-#if DEBUG_MODE
-      Serial.println("Start Sensonrs Config"); 
-#endif
+  
+  delay(2000);
   connection.begin();
   presc__.begin(); 
   
+#if DEBUG_MODE
+      Serial.println(F("DEBUG")); 
+#endif 
+
 #if ENABLED_INT_FLOWMETER  
   pinMode(FLOWMETER_PIN, INPUT); //initializes digital pin 2 as an input (Flowmeter)
-  attachInterrupt(INT0, isr_function, RISING); 
+  attachInterrupt(INT0, ISRFuncFlowmeter, RISING); 
 #endif
   
+}
+
+void Sensors::readSerials(){
+  
+  if(Serial.available()){
+    byte inByte = Serial.read();
+    
+  }
+  
+  if (Serial1.available()) {
+          byte inByte = Serial1.read();
+          Serial.write(inByte);
+  } 
+}
+
+ISR(TIMER1_OVF_vect){
+  sensor.readSerials();  
 }
 
 void Sensors::execute(){ // init program
@@ -74,12 +98,23 @@ void Sensors::execute(){ // init program
 
   sensorsUpdate();
   
-  if(connection.remotePOST("a", PORT)){
-    sendData = true;
+  if(!connection.wifiStatus)
+    connection.attachWIFI();  
+    
+  if(!connection.httpPOST(SERVER, PORT, value_sensors) && !connection.wifiStatus){
+#if DEBUG_MODE
+      Serial.print(F("Can't connect to remote server ")); 
+      Serial.print(SERVER);
+      Serial.print(F(" at port "));
+      Serial.println(PORT);  
+#endif
   }
   else{
-    //connection.connect();
-    sendData = false;
+#if DEBUG_MODE
+    Serial.println(F("Please be sure is connected")); 
+#endif
+    if(connection.connStatus)
+     connection.disconnectTCP();
   }
   
   delay(3000);
@@ -136,7 +171,7 @@ uint8_t Sensors::readDataDHT()
 	}
 
 	// WRITE TO RIGHT VARS
-        // as bits[1] and bits[3] are allways zero they are omitted in formulas.
+// as bits[1] and bits[3] are allways zero they are omitted in formulas.
 	humidity    = (bits[0] + bits[1])/10; 
 	temperature = (bits[2] + bits[3])/10; 
 
@@ -226,7 +261,10 @@ void Sensors::sensorsUpdate(){
 
 #if HAS_GPS
   long latLgt[3];
-  getLatLgt(latLgt);
+  latLgt[0] = 1.0;
+  latLgt[1] = 1.0;
+  
+  //getLatLgt(latLgt);
   value_sensors[9] = latLgt[0];
   value_sensors[10] = latLgt[1];
 #else
