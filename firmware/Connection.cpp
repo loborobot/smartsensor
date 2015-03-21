@@ -3,42 +3,20 @@
 #include "Sensors.h"
 #include <stdio.h>
 
-//querys for test- not use necessary
-char reqGET[]="GET /api/ HTTP/1.0\n"
-"Host: 192.168.1.200\n"
-"Accept: application/json\n"
-"Connection: close";
-
-//querys for test- not use necessary    
-char reqPOST[]="POST /api/update/ HTTP/1.0\n"
-"Host: 192.168.1.200\n"
-"Content-Type: application/json\n"
-"Accept: application/json\n"
-"Content-Length: 290\n"
-"Connection: close\n";
-
-//querys for test- not use necessary   
-char bodyPOST[]="{\"device\": \"166d77ac1b46a1ec38aa35ab7e628ab5\", \"pub_date\": \"2014-07-15T22:02:27.321Z\", \"temperature\": \"0\", \"humidity\": \"0\", \"light\": \"0\", \"ultra_violet\": \"0\", \"sound\": \"0\", \"flowmeter\": \"0\", \"volume\": \"0\", \"nitrogen_dioxide\": \"0\", \"carbon_monoxide\": \"0\"}";
-
+#define MAX_TEMP_BUF_SIZE  64
 
 uint32_t baud[7]={
   2400, 4800, 9600, 19200, 38400, 57600, 115200};
-
-long previousMillis = 0;
-long interval = 10000; 
 int post_interval = 1000;
 
 //char ssid[] = "WLAN_16D2"; //  your network SSID (name) 
 //char pass[] = "Z1460809D16D2";    // your network password (use for WPA, or use as key for WEP)
 
-char ssid[] = "Lobo_Robot"; //  your network SSID (name) 
-char pass[] = "loborobot2015";    // your network password (use for WPA, or use as key for WEP)
-
-int keyIndex = 0;            // your network key Index number (needed only for WEP)
+int keyIndex = 0;            
 
 #define ENTRY 10
 
-static char *cmds[10] = {
+static char *cmds_rn[10] = {
 "set ip dhcp 1", 
 strcat("set wlan ssid ", ssid),
 strcat("set wlan phrase ", pass),
@@ -48,6 +26,24 @@ strcat("set wlan phrase ", pass),
 "save",
 "reboot"
 }; 
+
+// commans AT for set HLK-RM04 (not use because we use WiFiRM04 library)
+static char *cmds_hlk[13]={
+  "at+netmode=2",
+  "at+wifi_conf=WLAN_16D2,wpa2_aes,Z1460809D16D2",
+  //strcat("at+wifi_conf=", ssid) + strcat(",", "wpa2_aes") + strcat(",", pass) +"",
+  "at+dhcpc=1",
+  "at+remoteip=192-168.1.200",
+  "at+remoteport=8000\r\n",
+  "at+remotepro=tcp\r\n",
+  "at+timeout=0\r\n",
+  "at+mode=server\r\n",
+  "at+uart=115200,8,n,1\r\n",
+  "at+uartpacklen=64\r\n",
+  "at+uartpacktimeout=10\r\n",
+  "at+net_commit=1\r\n",
+  "at+reconn=1\r\n"
+  };
 
 //****************************************************************START WIFI-HILINK
 /*
@@ -88,180 +84,6 @@ void Connection::begin(){ //init variables
   delay(1000);  
 }
 
-/*
-// function for printer information about connection
-void Connection::printWifiStatus() {
-  // print the SSID of the network you're attached to:
-  Serial.print("SSID: ");
-  Serial.println(WiFi.SSID());
-
-  // print your WiFi shield's IP address:
-  IPAddress ip = WiFi.localIP();
-  Serial.print("IP Address: ");
-  Serial.println(ip);
-
-  // print the received signal strength:
-  long rssi = WiFi.RSSI();
-  Serial.print("signal strength (RSSI):");
-  Serial.print(rssi);
-  Serial.println(" dBm");
-  
-  Serial.println("END setup");
-}
-
-// read serial
-void Connection::readSerials(){
-  
- unsigned long Starttime = millis();
- unsigned long Stoptime = Starttime + post_interval;
- 
-  while (millis() < Stoptime){
-    while (client.available()) {
-      char c = client.read();
-      Serial.write(c);
-    }
-  }
-  Starttime = 0;
-  Stoptime = 0;
-
-  // if the server's disconnected, stop the client:
-  if (!client.connected()) {
-    Serial.println();
-    Serial.println("disconnecting from server.");
-    client.stop();
-
-    // do nothing forevermore:
-    while(true);
-  }  
- //client.stop(); 
-}
-
-// print data send
-void Connection::printData(String data){
-  for(int k=0; k<6; k++){
-    if(k==4){
-      Serial.print(HTTPPOST[k]);
-      Serial.println(data.length());
-    }
-    else Serial.println(HTTPPOST[k]);
-  }
-  Serial.println(data);
-  Serial.println();
-}
-
-// send data with serial
-boolean Connection::sendQueryData(String data){
-  //if (client.connect(server, 8000)) {    
-  statusServer = STATUS_ONCONNECTION;
-      for(int l=0; l<6; l++){
-        if(l==4){
-          client.print(HTTPPOST[l]);
-          client.println(data.length());
-          //client.print(HTTPPOST[l]);
-          //client.println(data.length());
-        }
-        else client.println(HTTPPOST[l]);
-        //else client.println(HTTPPOST[l]);
-      }
-      client.println(data);
-      client.println();
-      readSerials();
-      return true;
-  //}
-}
-
-
-
-//server mode function
-void Connection::serverReceive(){
-  WiFiRM04Server server(8080);
-  server.begin();
-  WiFiRM04Client client = server.available();
-  if (client) {
-    Serial.println("new client");
-    // an http request ends with a blank line
-    boolean currentLineIsBlank = true;
-    while (client.connected()) {
-      if (client.available()) {
-        char c = client.read();
-        Serial.write(c);
-        // if you've gotten to the end of the line (received a newline
-        // character) and the line is blank, the http request has ended,
-        // so you can send a reply
-        if (c == '\n' && currentLineIsBlank) {
-          // add parsing of data receive
-          
-          // arduino web server: example of response
-          // send a standard http response header
-          client.println("HTTP/1.1 200 OK");
-          client.println("Content-Type: text/html");
-          client.println("Connection: close");  // the connection will be closed after completion of the response
-          client.println("Refresh: 5");  // refresh the page automatically every 5 sec
-          client.println();
-          client.println("<!DOCTYPE HTML>");
-          client.println("<HTML>");
-          client.println("<HEAD>");
-          client.println("<meta name='apple-mobile-web-app-capable' content='yes' />");
-          client.println("<meta name='apple-mobile-web-app-status-bar-style' content='black-translucent' />");
-          client.println("<link rel='stylesheet' type='text/css' href='http://randomnerdtutorials.com/ethernetcss.css' />");
-          client.println("<TITLE>Loborobot Project</TITLE>");
-          client.println("</HEAD>");
-          client.println("<BODY>");
-          client.println("<H1>Irrigation Automation</H1>");
-          client.println("<hr />");
-          client.println("<br />");  
-          client.println("<H2>Arduino with HLK-RM04</H2>");
-          client.println("<br />");  
-          client.println("<a href=\"/?button1on\"\">Turn On RELAY</a>");
-          client.println("<a href=\"/?button1off\"\">Turn Off RELAY</a><br />");   
-          client.println("<br />");     
-          client.println("<br />");   
-          client.println("<br />"); 
-          client.println("</BODY>");
-          client.println("</HTML>");
-          
-          delay(1);
-           //stopping client
-           client.stop();
-           
-           //controls the Arduino if you press the buttons          
-          if (readString.indexOf("?button1on") >0){
-             Serial.println("Rele Activado");  
-              //digitalWrite(led, HIGH);
-           }
-           if (readString.indexOf("?button1off") >0){
-             Serial.println("Rele Desactivado"); 
-             //digitalWrite(led, LOW);
-           }
-            //clearing string for next read
-            readString="";
-           break;
-        }
-        if (c == '\n') {
-          // you're starting a new line
-          currentLineIsBlank = true;
-        } 
-        else if (c != '\r') {
-          // you've gotten a character on the current line
-          currentLineIsBlank = false;
-        }
-      }
-    }
-    // give the web browser time to receive the data
-    delay(1);
-    
-    // close the connection:
-    client.stop();
-    Serial.println("Server: client disonnected");
-    Serial.println("Termina server");
-  }
-}
-*/
-//**************************************************************************END WIFI-HILINK 
-
-
-//**************************************************************************START WIFI-RN171
-
 boolean Connection::connectTCP(const char *addr, int port) {
 
   if (connStatus) {
@@ -274,10 +96,10 @@ boolean Connection::connectTCP(const char *addr, int port) {
     simpleWrite(addr);
     simpleWrite(F(" "));
     Serial1.print(port);
-    //simpleWriteln("");
+    simpleWriteln("");
     if (!waitResp("*OPEN*", 3000)){
 #if DEBUG_MODE  
-    Serial.println("no open TCP ...");
+      Serial.println("no open TCP ...");
 #endif      
       connStatus = false;
 
@@ -307,29 +129,31 @@ boolean Connection::disconnectTCP() {
 boolean Connection::attachWIFI(){
 
 #if DEBUG_MODE
-  Serial.println(F("entering command mode"));
+ 
 #endif
-    
+
+#if TYPE_LINK_CONNECTION == 1
+   Serial.println(F("entering command mode TYPE_LINK_CONNECTION == 1 "));
   if(enterCommandMode()){
 #if DEBUG_MODE
     Serial.println(F("sending commads to module"));
 #endif
     //sendCommands();
     simpleWriteln(F("set comm remote 0"));
-    simpleWriteln(F("set wlan auth 4"));
+    simpleWriteln(F("set wlan auth 0")); // 4
     simpleWriteln(F("set ip dhcp 1"));
     simpleWriteln(F("set ip proto 10"));
     simpleWriteln(F("set wlan ssid Lobo_Robot"));
     simpleWriteln(F("set wlan phrase loborobot2015")); 
     simpleWriteln(F("set wlan linkmon 5"));
     simpleWriteln(F("set wlan channel 0"));
-    simpleWriteln(F("set wlan join 1"));
+    simpleWriteln(F("set wlan join 0")); //1
     simpleWriteln(F("save"));
     simpleWriteln(F("reboot"));
 
 #if DEBUG_MODE
 
-    Serial.println(F("set wlan auth 4"));
+    Serial.println(F("set wlan auth 0")); // 4
     Serial.println(F("set ip dhcp 1"));
     Serial.println(F("set ip proto 10"));
     Serial.println(F("set wlan ssid Lobo_Robot"));
@@ -337,16 +161,17 @@ boolean Connection::attachWIFI(){
     Serial.println(F("set comm remote 0"));
     Serial.println(F("set wlan linkmon 5"));
     Serial.println(F("set wlan channel 0"));
-    Serial.println(F("set wlan join 1"));
+    Serial.println(F("set wlan join 0")); //1
     Serial.println(F("save"));
     Serial.println(F("reboot"));
-    Serial.println(F(" all commands were sended."));
+    Serial.println(F("all commands were sended."));
 
 #endif
 
     wifiStatus = true;
     return true;
-  } else {
+  } else 
+  {
     wifiStatus = false;
 #if DEBUG_MODE
     Serial.println(F("couldn't enter in command mode"));
@@ -355,6 +180,45 @@ boolean Connection::attachWIFI(){
     repair();
     return false;
   }
+
+#elif TYPE_LINK_CONNECTION  == 2
+  Serial.println(F("entering command mode TYPE_LINK_CONNECTION == 2 "));
+  
+  if(enterCommandModeHLK())
+  {
+    simpleWriteln(F("at+netmode=2"));
+    simpleWriteln(F("at+wifi_conf=WLAN_16D2,wpa2_aes,Z1460809D16D2"));
+    //simpleWriteln(F("at+" + strcat("wifi_conf=",ssid) + strcat(",","wpa2_aes") + strcat(",",pass) + ""));
+    simpleWriteln(F("at+dhcpc=1"));
+    simpleWriteln(F("at+remoteip=remote-device.dyndns-at-work.com"));
+    simpleWriteln(F("at+remoteport=8080"));
+    simpleWriteln(F("at+timeout=0")); 
+    simpleWriteln(F("at+uart=115200,8,n,1"));
+    simpleWriteln(F("at+uartpacklen=64"));
+    simpleWriteln(F("at+net_commit=1"));
+    simpleWriteln(F("at+reconn=1"));
+
+#if DEBUG_MODE  
+     Serial.println(F(" all commands were sended."));
+#endif
+
+    wifiStatus = true;
+    return true;
+    
+  }else
+  {
+#if DEBUG_MODE
+    Serial.println(F("couldn't enter in command mode HLK "));
+#endif    
+    wifiStatus = false;
+    return false;
+
+  }
+  
+#elif TYPE_LINK_CONNECTION  == 3
+  Serial.println(F("entering command mode TYPE_LINK_CONNECTION == 3 "));
+#endif
+
 } 
 
 boolean Connection::httpPOST(const char* server, int port, long *value_sensors){
@@ -385,7 +249,7 @@ boolean Connection::httpPOST(const char* server, int port, long *value_sensors){
   
   connStatus = true;
   
-  for(i=0; i<6; i++){
+  for(i=0; i<2; i++){
     if(i==4){
       Serial1.print(HTTPPOST[i]);
       //itoa(strlen(data),itoaBuffer,10);
@@ -437,9 +301,9 @@ void Connection::sendCommands() {
   byte i = 0;
   while( i < ENTRY ) {
 #if DEBUG_MODE  
-    Serial.println(cmds[i]);
+    Serial.println(cmds_rn[i]);
 #endif
-    Serial1.println(cmds[i]);
+    Serial1.println(cmds_rn[i]);
     delay(COMMAND_DELAY);
     
     while(Serial1.available()) {
@@ -517,15 +381,16 @@ boolean Connection::enterCommandMode() {
     delay(COMMAND_MODE_GUARD_TIME);
     Serial1.print("$$$");
     delay(COMMAND_MODE_GUARD_TIME);
-    Serial1.println();
-    Serial1.println();
+    //Serial1.println();
+    //Serial1.println();
    
-    if (waitResp("\r\n<", 1000))
+    if (waitResp("CMD\r\n<", 1000))
     {
       return true;
     }
   
     return false;
+
 }
 
 boolean Connection::exitCommandMode() {
@@ -569,10 +434,8 @@ void Connection::repair(){
 //***************************************************************END WIFI-RN171
 
 /*
-void Connection::activeModeAT(){
-  Serial.begin(115200);
-  Serial1.begin(115200);
- 
+boolean Connection::enterCommandModeHLK(){
+
   pinMode(SCAPE_PIN, OUTPUT);
   digitalWrite(SCAPE_PIN, !SCAPE_PIN_ACTIVE);
   
@@ -581,16 +444,80 @@ void Connection::activeModeAT(){
   delay(TES_TIME_IN_MS+50);
   digitalWrite(SCAPE_PIN, !SCAPE_PIN_ACTIVE);
   
-  modeAT = MODE_AT_ACTIVE;
-  Serial.println("Modo AT actiado");
-  if(modeAT) setConnection();
-  else {
-    Serial1.write("at+out_trans=0\r\n");
-    modeAT = false;
-  }
+  return true;
+}*/
 
+
+void Connection::clearSerialRxData()
+{
+  while(Serial1.available())
+    Serial1.read();
 }
 
+bool Connection::echoTest(long timeout)
+{
+  char buf[MAX_TEMP_BUF_SIZE+1];
+  int i;
+  char *token;
+ 
+  clearSerialRxData();
+  Serial1.println("#32767");
+  Serial1.flush();
+  Serial1.setTimeout(timeout);
+ 
+  i = Serial1.readBytes(buf, MAX_TEMP_BUF_SIZE);
+  
+  if(i == 0) {
+#if DEBUG_MODE  
+  Serial.println("Echo no resp");
+#endif
+    return false;
+  }
+  
+  buf[i] = NULL;
+  token = buf;
+  
+  while(*token && *token++ != '#');
+  
+  int ret = strtol(token, NULL, 10);
+
+  clearSerialRxData();
+  
+  return (ret == 32767)? true:false;
+}
+
+boolean Connection::enterCommandModeHLK()
+{
+  int retryCount = 0;
+  // flush tx buffer's data first
+  Serial1.flush();
+
+  retry:
+  digitalWrite(ESCAPE_PIN, ESCAPE_PIN_ACTIVE);
+  // according to user manual, delay should be > Tes time, so we plus 50ms here
+  delay(TES_TIME_IN_MS+50*(retryCount+1));
+  digitalWrite(ESCAPE_PIN, !ESCAPE_PIN_ACTIVE);
+  // MUST preserve all data in rx buffer here, or these data would be mixed with at command response
+  // TODO: QueueList would cause heap fragmentation?
+  if(retryCount == 0) {
+    while(Serial1.available()) {
+      Serial.println(Serial1.read());
+    }
+  }
+  
+  if(echoTest()) {
+    modeAT = true;
+    return true;
+  }
+  else
+    modeAT = false;
+  
+  if(retryCount++ < 5)
+    goto retry;
+  
+  return false;
+}
+/*
 void Connection::setConnection(){
   if(modeAT){
     for(int i=0; i<13; i++){

@@ -36,7 +36,8 @@ public:
   float getNO2();
   void sensorsUpdate(); 
   void readSerials();
-
+  void terminal();
+  
   long latLgt[3];
   //void getLatLgt(long *latLgt);
 private:
