@@ -28,7 +28,7 @@ strcat("set wlan phrase ", pass),
 }; 
 
 // commans AT for set HLK-RM04 (not use because we use WiFiRM04 library)
-static char *cmds_hlk[13]={
+/*static char *cmds_hlk[13]={
   "at+netmode=2",
   "at+wifi_conf=WLAN_16D2,wpa2_aes,Z1460809D16D2",
   //strcat("at+wifi_conf=", ssid) + strcat(",", "wpa2_aes") + strcat(",", pass) +"",
@@ -43,7 +43,7 @@ static char *cmds_hlk[13]={
   "at+uartpacktimeout=10\r\n",
   "at+net_commit=1\r\n",
   "at+reconn=1\r\n"
-  };
+  };*/
 
 //****************************************************************START WIFI-HILINK
 /*

@@ -70,18 +70,20 @@ int port = 8000; // the port, 80 for HTTP
 */
 
 // ip server
-static char server[] = "192.168.1.34";
+//static char server[] = "192.168.1.201";
+static char server[] = "smartsensorv2.herokuapp.com";
 //static char server[] = "remote-device.dyndns-at-work.com";
-#define PORT 8080
-static  char ssid[] = "Lobo_Robot"; 
-static  char pass[] = "loborobot2015";   
+
+#define PORT 80
+//static  char ssid[] = "Lobo_Robot"; 
+//static  char pass[] = "loborobot2015";   
 
 
-//static  char ssid[] = "WLAN_A490"; 
-//static  char pass[] = "Z2C26C54CA490";   
+static  char ssid[] = "WLAN_A490"; 
+static  char pass[] = "Z2C26C54CA490";   
 
 // commans AT for set HLK-RM04 (not use because we use WiFiRM04 library)
-static char *commands_wifi_client[13]={
+/*static char *commands_wifi_client[13]={
   "at+netmode=2\r\n",
   "at+wifi_conf=WLAN_16D2,wpa2_aes,Z1460809D16D2\r\n",
   "at+dhcpc=1\r\n",
@@ -95,11 +97,13 @@ static char *commands_wifi_client[13]={
   "at+uartpacktimeout=10\r\n",
   "at+net_commit=1\r\n",
   "at+reconn=1\r\n"
-  };
+  };*/
 
 static char* HTTPPOST[7]={
-  "POST /api/update/ HTTP/1.0",
-  "Host: 192.168.1.34",
+//  "POST /api/update/ HTTP/1.0",
+  "POST /webapi/update/ HTTP/1.0",
+  "Host: smartsensorv2.herokuapp.com",
+ // "Host: 192.168.1.201",
   "User-Agent: SmartSensor",
   "Content-Type: application/json",
   "Accept: application/json",
@@ -135,8 +139,8 @@ static char* bodyJSON3[14]={
   "\",\"carbon_monoxide\": \"",
   "\",\"latitude\": \"",
   "\",\"longitude\": \"",
-  "\",\"device\": \"166d77ac1b46a1ec38aa35ab7e628ab5\"",
-  ",\"pub_date\": \"2015-03-20T22:02:27.321Z",
+  "\",\"device\": \"166d77ac1b46a1ec38aa35ab7e628ab5\"", 
+  ",\"pub_date\": \"",
   "\"}"
   };
 

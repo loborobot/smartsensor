@@ -1,5 +1,5 @@
-#ifndef __RESOURCES_H__
-#define __RESOURCES_H__
+#ifndef __CORE_H__
+#define __CORE_H__
 
 //#include <Arduino.h>
 
@@ -9,12 +9,10 @@ class Core
 public:  
   void begin();
   
-  String RTCread();
+  String getRTC();
   void writeSD();
   void dateFormat();
   
 private:
 };
-
-extern Resources RSCS;
 #endif

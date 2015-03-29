@@ -1,7 +1,7 @@
 //#include <Wire.h>
 #include "Constants.h"
 #include "Sensors.h"
-//#include "Resources.h"
+#include "Core.h"
 //#include "Connection.h"
 #include <WiFlyHQ.h>
 // pointers for call object
@@ -20,6 +20,7 @@ boolean connStatus;
 byte tried;
 
 long value_sensors[SENSORS_NUMBER];
+char current_time[20];
 
 // count how many pulses!
 volatile uint16_t pulses = 0;
@@ -29,6 +30,8 @@ volatile uint8_t lastflowpinstate;
 volatile uint32_t lastflowratetimer = 0;
 // and use that to calculate a flow rate
 volatile float flowrate;
+
+Core core;
 
 void ISRFuncFlowmeter(){
   pulses++;  
@@ -114,7 +117,8 @@ void Sensors::begin(){ //init variables
   wifiStatus = false;
   connStatus = false;
   tried = 0;
-  //presc__.begin(); 
+  
+  core.begin(); 
 
   pinMode(CO2_PIN, INPUT);
   pinMode(NO2_PIN, INPUT);
@@ -251,6 +255,7 @@ void Sensors::execute(){ // init program
      
        Serial.print(bodyJSON3[i]);
        Serial.print(bodyJSON3[i+1]);
+       Serial.print(core.getRTC());
        Serial.print(bodyJSON3[i+2]);
 #endif
 
@@ -278,6 +283,7 @@ void Sensors::execute(){ // init program
      
        wifly.print(bodyJSON3[i]);
        wifly.print(bodyJSON3[i+1]);
+       wifly.print(core.getRTC());
        wifly.print(bodyJSON3[i+2]);
        
 #ifdef DEBUG_MODE             
@@ -316,7 +322,7 @@ void Sensors::execute(){ // init program
       */
       
       
-      //wifly.close();
+      wifly.close();
       
       
   } else {
@@ -353,7 +359,7 @@ void Sensors::execute(){ // init program
        connection.disconnectTCP();
     }
   }*/
-  delay(5000);
+  delay(60000);
 
 }
 

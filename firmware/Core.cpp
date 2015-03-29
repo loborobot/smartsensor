@@ -1,16 +1,16 @@
 #include <Wire.h>
 //#include <SD.h>
 #include <RTClib.h>
-#include "Constants.h"
-#include "Resources.h"
 
+#include "Constants.h"
+#include "Core.h"
 
 RTC_DS1307 RTC; // object to RTC
 
 //DateTime now;
 //File logFile;
 
-void Resources::begin(){ //init variables
+void Core::begin(){ //init variables
   //pinMode(10, OUTPUT);
   //if (!SD.begin(4)) {
     //Serial.println("SD Card initialization failed");
@@ -26,7 +26,7 @@ void Resources::begin(){ //init variables
   RTC.begin();
   // run clock with time PC
   if (! RTC.isrunning()) {
-    RTC.adjust(DateTime(__DATE__, __TIME__));
+    //RTC.adjust(DateTime(__DATE__, __TIME__));
   }
 }
 
@@ -37,8 +37,8 @@ void Resources::begin(){ //init variables
 
 
 // Struct format date end time (read)
-String Resources::RTCread(){
-/*
+String Core::getRTC(){
+
   String date;
   DateTime now = RTC.now();// funcion que regresa tiempo
   //  2014-07-15T22:02:27.321Z
@@ -55,11 +55,11 @@ String Resources::RTCread(){
   date += now.second();
   date += ".000Z";
   
-  return date;*/
+  return date;
 }
 
 //printer data in SD card
-void Resources::writeSD(){
+void Core::writeSD(){
   /*
   if(!pconn1__.statusConn){;
   logFile = SD.open("log.txt", FILE_WRITE);
@@ -75,6 +75,4 @@ void Resources::writeSD(){
     }
     */
 }
-
-
 

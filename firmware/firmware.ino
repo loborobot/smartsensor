@@ -6,7 +6,7 @@
 // autor ; Steve Ataucuri Cruz
 
 #include <Wire.h>
-//#include <RTClib.h>
+#include <RTClib.h>
 #include <WiFlyHQ.h>
 #include "Sensors.h"
 
