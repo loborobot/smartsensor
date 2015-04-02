@@ -31,6 +31,10 @@ volatile uint32_t lastflowratetimer = 0;
 // and use that to calculate a flow rate
 volatile float flowrate;
 
+
+float vcc = 5.0;
+float Res0 = 100000;
+
 Core core;
 
 void ISRFuncFlowmeter(){
@@ -68,59 +72,71 @@ void Sensors::begin(){ //init variables
   Serial.begin(DEFAULT_BAUD1);
   Serial1.begin(DEFAULT_BAUD2);
 
-#ifdef DEBUG_MODE
-  while(!Serial)
-    Serial.println(F("Serial is ready "));
-#endif      
+  #ifdef DEBUG_MODE
+    while(!Serial)
+      Serial.println(F("Serial is ready "));
+  #endif      
   //connection.begin();
   
-  if (!wifly.begin(&Serial1, &Serial)) {
-#ifdef DEBUG_MODE     
+  if (!wifly.begin(&Serial1, &Serial)) 
+  {
+  #ifdef DEBUG_MODE     
     Serial.println(F("Failed to start wifly"));
-#endif
+  #endif
     terminal();
     //readSerials();
   }
   
-  if (!wifly.isAssociated()) 
-  {
-#ifdef DEBUG_MODE   
-    Serial.println(F("Joining network"));
-#endif
-	wifly.setSSID(ssid);
-	wifly.setPassphrase(pass);
-	wifly.enableDHCP();
-  
-  	if (!wifly.join()) {
-#ifdef DEBUG_MODE   
-            Serial.println(F("Failed to join wifi network"));
-#endif
-  	    terminal();
-            //readSerials();
-  	}
-  
-  } else {
-#ifdef DEBUG_MODE     
-      Serial.println(F("Already joined network"));
-#endif
-  }
-
-#ifdef DEBUG_MODE   
-  Serial.print(F("IP: "));
-  Serial.println(wifly.getIP(buf, sizeof(buf)));
-#endif   
-
-  if (wifly.isConnected()) {
-    wifly.close();
-  }
-
   wifiStatus = false;
   connStatus = false;
   tried = 0;
   
+  if (!wifly.isAssociated()) 
+  {
+  #ifdef DEBUG_MODE   
+    Serial.println(F("Joining network"));
+  #endif
+    wifly.setSSID(ssid);
+    wifly.setPassphrase(pass);
+    wifly.enableDHCP();
+    wifiStatus = true; 
+    
+    if (!wifly.join()) 
+    {
+    #ifdef DEBUG_MODE   
+      Serial.println(F("Failed to join wifi network"));
+    #endif
+      //terminal();
+      //readSerials();  
+      wifiStatus = false;
+    } 
+  } else  
+  {
+    if(!wifly.join())
+    {
+    #ifdef DEBUG_MODE   
+      Serial.println(F("Failed to join wifi network"));
+    #endif
+      wifiStatus = false;
+    }else{
+     Serial.println(F("Already joined network"));
+    }
+  }
+  
+  #ifdef DEBUG_MODE   
+    Serial.print(F("IP: "));
+    Serial.println(wifly.getIP(buf, sizeof(buf)));
+  #endif   
+
+  /*if (wifly.isConnected()) { //TCP connection
+    wifly.close();
+    connStatus = false;
+  }*/
+
+  
   core.begin(); 
 
-  pinMode(CO2_PIN, INPUT);
+  pinMode(CO_PIN, INPUT);
   pinMode(NO2_PIN, INPUT);
 
 #ifdef ENABLED_INT_FLOWMETER 
@@ -151,15 +167,26 @@ void Sensors::terminal()
 
 void Sensors::readSerials(){
   
+ unsigned long startTime = millis();
+ unsigned long stopTime = startTime + POST_INTERVAL;
+  
   if(Serial.available()){
     byte inByte = Serial.read();
     
   }
-  
-  if (Serial1.available()) {
-          byte inByte = Serial1.read();
-          Serial.write(inByte);
+  /*#ifdef DEBUG_MODE     
+    Serial.println(F("hey i am here"));
+  #endif*/
+   
+  while (millis() < stopTime){
+    while(Serial1.available()) {
+      byte inByte = Serial1.read();
+      Serial.write(inByte);
+    }
   } 
+  startTime = 0;
+  stopTime = 0;
+
 }
 
 ISR(TIMER1_OVF_vect){
@@ -186,59 +213,58 @@ ISR(TIMER0_COMPA_vect) {
 
 void Sensors::execute(){ // init program
 
-#ifdef DEBUG_MODE    
-  Serial.println("pass..");
-#endif
-
- 
-  if (tried == 4 && !connStatus) 
+  if (!wifly.isAssociated()) 
+    wifiStatus = false;
+  
+  if (tried == 4 && !wifiStatus) 
   {
           
-#ifdef DEBUG_MODE   
-  
-    Serial.println(F("Rebooting and joining network"));
-#endif
-        wifly.reboot();
-        delay(2000);
-        
-	wifly.setSSID(ssid);
-	wifly.setPassphrase(pass);
-	wifly.enableDHCP();
-  
-  	if (!wifly.join()) {
-#ifdef DEBUG_MODE   
-            Serial.println(F("Failed to join wifi network"));
-#endif
-  	    terminal();
-            //readSerials();
-  	}
-        tried = 0;
-  }else {
-#ifdef DEBUG_MODE     
+    #ifdef DEBUG_MODE   
+      Serial.println(F("Rebooting and joining network"));
+    #endif
+    wifly.reboot();
+    delay(2000);
+    
+    wifly.setSSID(ssid);
+    wifly.setPassphrase(pass);
+    wifly.enableDHCP();
+
+    if (!wifly.join()) 
+    {
+    #ifdef DEBUG_MODE   
+      Serial.println(F("Failed to join wifi network"));
+    #endif
+      terminal();
+      //readSerials();
+      wifiStatus = false;
+    }
+    tried = 0;
+  }else 
+  {
+    #ifdef DEBUG_MODE     
       Serial.println(F("Already joined network"));
-#endif
+    #endif
   }
 
-  if (wifly.open(server, PORT)) 
-   {
-       sensorsUpdate();
-#ifdef DEBUG_MODE     
+  if (wifly.open(server, PORT) && wifiStatus) 
+  {
+    sensorsUpdate();
+    #ifdef DEBUG_MODE     
       Serial.print(F(" Connected to "));
       Serial.println(server);
-#endif      
-      char itoaBuffer[8];
-      byte i; 
-     
-      //char bodyPOST[]="{\"device\": \"166d77ac1b46a1ec38aa35ab7e628ab5\", \"pub_date\": \"2015-03-19T22:02:27.321Z\", \"temperature\": \"0\", \"humidity\": \"0\", \"light\": \"0\", \"ultra_violet\": \"0\", \"sound\": \"0\", \"flowmeter\": \"0\", \"volume\": \"0\", \"nitrogen_dioxide\": \"0\", \"carbon_monoxide\": \"0\", \"longitude\": \"1\", \"latitude\": \"1\"}";
-#ifdef DEBUG_MODE
-      for(i=0; i<5; i++)
+    #endif      
+
+    char itoaBuffer[8];
+    byte i; 
+   
+    #ifdef DEBUG_MODE
+      for(i=0; i<6; i++)
           Serial.println(HTTPPOST[i]);
        
-       Serial.print(HTTPPOST[5]);
+       Serial.print(HTTPPOST[6]);
        //itoa(strlen(bodyPOST),itoaBuffer,10);        
        //wifly.println(itoaBuffer);
        Serial.println("290");
-       //Serial1.println(HTTPPOST[6]);
        Serial.println();
       
        for(i = 0; i<SENSORS_NUMBER; i++){ //11
@@ -257,16 +283,15 @@ void Sensors::execute(){ // init program
        Serial.print(bodyJSON3[i+1]);
        Serial.print(core.getRTC());
        Serial.print(bodyJSON3[i+2]);
-#endif
+    #endif
 
-      for(i=0; i<5; i++)
+      for(i=0; i<6; i++)
           wifly.println(HTTPPOST[i]);
        
-       wifly.print(HTTPPOST[5]);
+       wifly.print(HTTPPOST[6]);
        //itoa(strlen(bodyPOST),itoaBuffer,10);        
        //wifly.println(itoaBuffer);
        wifly.println("290");
-       //Serial1.println(HTTPPOST[6]);
        wifly.println();
       
        for(i = 0; i<SENSORS_NUMBER; i++){ //11
@@ -286,13 +311,13 @@ void Sensors::execute(){ // init program
        wifly.print(core.getRTC());
        wifly.print(bodyJSON3[i+2]);
        
-#ifdef DEBUG_MODE             
-       Serial.print(F(" \nPosted to server pulses "));
-       Serial.print(pulses);
-       Serial.print(F(" flowmeter  "));
-       Serial.print(getFlowMeter());
+    #ifdef DEBUG_MODE             
+       Serial.print(F(" \nPosted to server at time "));
+       //Serial.print(pulses);
+       //Serial.print(F(" flowmeter  "));
+       Serial.println(core.getRTC());
        
-#endif             
+    #endif             
       /*
       for(i=0; i<5; i++)
         Serial1.println(HTTPPOST[i]);
@@ -323,18 +348,18 @@ void Sensors::execute(){ // init program
       
       
       wifly.close();
+      //connStatus = false;
       
-      
-  } else {
-    connStatus = false;
+  } else
+  {
+    wifiStatus = false;
     tried++;
     
-#ifdef DEBUG_MODE       
+  #ifdef DEBUG_MODE       
     Serial.println(F("Failed to connect"));
-      
-#endif
+  #endif
   }
-  
+  readSerials();
         
 
 /*  
@@ -359,8 +384,8 @@ void Sensors::execute(){ // init program
        connection.disconnectTCP();
     }
   }*/
-  delay(60000);
-
+  
+  
 }
 
 uint8_t Sensors::readDataDHT()
@@ -371,7 +396,7 @@ uint8_t Sensors::readDataDHT()
 	uint8_t idx = 0;
 
 	// EMPTY BUFFER
-	for (int i=0; i< 5; i++) bits[i] = 0;
+	for (byte i=0; i< 5; i++) bits[i] = 0;
 
 	// REQUEST SAMPLE
 	pinMode(DHT_PIN, OUTPUT);
@@ -391,7 +416,7 @@ uint8_t Sensors::readDataDHT()
 		if (loopCnt-- == 0) return -2; //-2 : timeout
 
 	// READ OUTPUT - 40 BITS => 5 BYTES or TIMEOUT
-	for (int i=0; i<40; i++)
+	for (byte i=0; i<40; i++)
 	{
 		loopCnt = 10000;
 		while(digitalRead(DHT_PIN) == LOW)
@@ -424,7 +449,7 @@ uint8_t Sensors::readDataDHT()
 }
 
 float Sensors::getLDR(){
-  float _valueLDR = analogRead(LDR_PIN);
+  float _valueLDR = avg(LDR_PIN);
   
   if(_valueLDR < 5) return 0.0;
   
@@ -449,11 +474,11 @@ float Sensors::getLDR(){
 }
 
 float Sensors::getUV(){
-  return analogRead(UV_PIN);
+  return avg(UV_PIN);
 }
 
 float Sensors::getNoise(){
-  float _sound = analogRead(SOUND_PIN);
+  float _sound = avg(SOUND_PIN);
   
   if(_sound < 2)
     _sound = map(_sound, 0, 2, 1, 2);
@@ -465,12 +490,17 @@ float Sensors::getNoise(){
   return _sound;
 }
 
-float Sensors::getCO2(){ 
-  return analogRead(CO2_PIN);
+float Sensors::getCO(){ 
+  return avg(CO_PIN);
 }
 
 float  Sensors::getNO2(){ 
-  return map(analogRead(NO2_PIN), 0, 1023, 0, 1000);
+  float no2 = avg(NO2_PIN); // analogico A1
+  //Serial.print("no2 "); Serial.println(no2);
+  //no2 = (float)no2/1023*vcc; // voltage value from ADC 100K
+  //no2 = ((Res0*vcc)/no2)-Res0;  // ohm value of the pull resistor
+  //return no2;
+  //return map(analogRead(NO2_PIN), 0, 1023, 0, 1000);
 }
 
 float Sensors::getFlowMeter(){
@@ -479,6 +509,17 @@ float Sensors::getFlowMeter(){
   liters /= 60.0;
   return liters;
 }
+
+float Sensors::avg(byte pin) {
+  byte times = 20;
+  long acum = 0;
+  
+  for(byte i=0; i<times; i++)
+   acum+= analogRead(pin);
+
+  return(float)acum / times;  
+}
+
 
 void Sensors::sensorsUpdate(){
 
@@ -491,29 +532,26 @@ void Sensors::sensorsUpdate(){
   value_sensors[3] = getUV();
   value_sensors[4] = getNoise();
   
-#ifdef ENABLED_INT_FLOWMETER  == 1
-  
-  value_sensors[5] = getFlowMeter();
-  value_sensors[6] = 0.0; 
-#else
-  value_sensors[5] = -1.0;
-  value_sensors[6] = -1.0;
-#endif  
+  #ifdef ENABLED_INT_FLOWMETER  == 1
+    value_sensors[5] = getFlowMeter();
+  #else
+    value_sensors[5] = -1.0;
+  #endif  
 
-  value_sensors[7] = getNO2();
-  value_sensors[8] = getCO2(); 
+  value_sensors[6] = getNO2();
+  value_sensors[7] = getCO(); 
 
 #ifdef HAS_GPS
-  long latLgt[3];
-  latLgt[0] = 1.0;
-  latLgt[1] = 1.0;
+  //long latLgt[3];
+  //latLgt[0] = 1.0;
+  //latLgt[1] = 1.0;
   
   //getLatLgt(latLgt);
-  value_sensors[9] = latLgt[0];
-  value_sensors[10] = latLgt[1];
+  value_sensors[8] = latLgt[0];
+  value_sensors[9] = latLgt[1];
 #else
+  value_sensors[8] = -1.0;
   value_sensors[9] = -1.0;
-  value_sensors[10] = -1.0;
 #endif
   
 }

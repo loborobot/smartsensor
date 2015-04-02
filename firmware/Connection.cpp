@@ -261,32 +261,32 @@ boolean Connection::httpPOST(const char* server, int port, long *value_sensors){
   Serial1.println();
 
   for(i = 0; i<SENSORS_NUMBER; i++){
-    Serial1.print(bodyJSON2[i]);
+    Serial1.print(bodyJSON3[i]);
     Serial1.print(value_sensors[i]);
   }
   
-  Serial1.print(bodyJSON2[i]);
+  Serial1.print(bodyJSON3[i]);
   Serial1.print(value_sensors[i]);
-  Serial1.print(bodyJSON2[i+1]);
+  Serial1.print(bodyJSON3[i+1]);
   Serial1.print(value_sensors[i+1]);
-  Serial1.print(bodyJSON2[i+2]);
+  Serial1.print(bodyJSON3[i+2]);
   Serial1.print(value_sensors[i+2]);
   Serial1.println();
 
 #if DEBUG_MODE
 
   for(i = 0; i<SENSORS_NUMBER; i++){
-    Serial.println(bodyJSON2[i]);
+    Serial.println(bodyJSON3[i]);
     Serial.print(value_sensors[i]);  
   }
   
-  Serial.print(bodyJSON2[i]);
+  Serial.print(bodyJSON3[i]);
   Serial.print(value_sensors[i]);
   
-  Serial.print(bodyJSON2[i+1]);
+  Serial.print(bodyJSON3[i+1]);
   Serial.print(value_sensors[i+1]);
   
-  Serial.print(bodyJSON2[i+2]);
+  Serial.print(bodyJSON3[i+2]);
   Serial.print(value_sensors[i+2]);
   Serial.println();
 #endif

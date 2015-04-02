@@ -1,4 +1,4 @@
-#include <Wire.h>
+  #include <Wire.h>
 //#include <SD.h>
 #include <RTClib.h>
 
@@ -9,6 +9,7 @@ RTC_DS1307 RTC; // object to RTC
 
 //DateTime now;
 //File logFile;
+// 27.608
 
 void Core::begin(){ //init variables
   //pinMode(10, OUTPUT);
@@ -28,6 +29,7 @@ void Core::begin(){ //init variables
   if (! RTC.isrunning()) {
     //RTC.adjust(DateTime(__DATE__, __TIME__));
   }
+  RTC.adjust(DateTime(__DATE__, __TIME__));
 }
 
 /*void Resources::execute(){ // init program
@@ -76,3 +78,104 @@ void Core::writeSD(){
     */
 }
 
+/*void setDS3231time(const DateTime &dt)
+{
+  // sets time and date data to DS3231
+  Wire.beginTransmission(DS3231_I2C_ADDRESS);
+  Wire.write(0); // set next input to start at the seconds register
+  Wire.write(decToBcd(dt.second())); // set seconds
+  Wire.write(decToBcd(dt.minute())); // set minutes
+  Wire.write(decToBcd(dt.hour)); // set hours
+  Wire.write(decToBcd(0)); // set day of week (1=Sunday, 7=Saturday)
+  Wire.write(decToBcd(dt.day())); // set date (1 to 31)
+  Wire.write(decToBcd(dt.month())); // set month
+  Wire.write(decToBcd(dt.year()-2000)); // set year (0 to 99)
+  Wire.endTransmission();
+}*/
+/*
+void setDS3231time(byte second, byte minute, byte hour, byte dayOfWeek, byte
+dayOfMonth, byte month, byte year)
+{
+  // sets time and date data to DS3231
+  Wire.beginTransmission(DS3231_I2C_ADDRESS);
+  Wire.write(0); // set next input to start at the seconds register
+  Wire.write(decToBcd(second)); // set seconds
+  Wire.write(decToBcd(minute)); // set minutes
+  Wire.write(decToBcd(hour)); // set hours
+  Wire.write(decToBcd(dayOfWeek)); // set day of week (1=Sunday, 7=Saturday)
+  Wire.write(decToBcd(dayOfMonth)); // set date (1 to 31)
+  Wire.write(decToBcd(month)); // set month
+  Wire.write(decToBcd(year)); // set year (0 to 99)
+  Wire.endTransmission();
+}
+
+void readDS3231time(byte *second,byte *minute,
+                    byte *hour, byte *dayOfWeek,byte *dayOfMonth,
+                    byte *month, byte *year)
+{
+  Wire.beginTransmission(DS3231_I2C_ADDRESS);
+  Wire.write(0); // set DS3231 register pointer to 00h
+  Wire.endTransmission();
+  Wire.requestFrom(DS3231_I2C_ADDRESS, 7);
+  // request seven bytes of data from DS3231 starting from register 00h
+  *second = bcdToDec(Wire.read() & 0x7f);
+  *minute = bcdToDec(Wire.read());
+  *hour = bcdToDec(Wire.read() & 0x3f);
+  *dayOfWeek = bcdToDec(Wire.read());
+  *dayOfMonth = bcdToDec(Wire.read());
+  *month = bcdToDec(Wire.read());
+  *year = bcdToDec(Wire.read());
+}
+
+char time[TIME_BUFFER_SIZE] // 2015-03-31T19:07:27.321Z
+void displayTime(char *time)
+{
+  byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
+  // retrieve data from DS3231
+  readDS3231time(&second, &minute, &hour, &dayOfWeek, &dayOfMonth, &month,&year);
+  // send it to the serial monitor
+  //time[i]= year/mod;
+  // convert the byte variable to a decimal number when displayed
+  Serial.print(":");
+  if (minute<10)
+  {
+    Serial.print("0");
+  }
+  Serial.print(minute, DEC);
+  Serial.print(":");
+  if (second<10)
+  {
+    Serial.print("0");
+  }
+  Serial.print(second, DEC);
+  Serial.print(" ");
+  Serial.print(dayOfMonth, DEC);
+  Serial.print("/");
+  Serial.print(month, DEC);
+  Serial.print("/");
+  Serial.print(year, DEC);
+  Serial.print(" Day of week: ");
+  switch(dayOfWeek){
+  case 1:
+    Serial.println("Sunday");
+    break;
+  case 2:
+    Serial.println("Monday");
+    break;
+  case 3:
+    Serial.println("Tuesday");
+    break;
+  case 4:
+    Serial.println("Wednesday");
+    break;
+  case 5:
+    Serial.println("Thursday");
+    break;
+  case 6:
+    Serial.println("Friday");
+    break;
+  case 7:
+    Serial.println("Saturday");
+    break;
+  }
+}*/

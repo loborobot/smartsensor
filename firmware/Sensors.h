@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#define SENSORS_NUMBER 11
+#define SENSORS_NUMBER 10
 
 
 class Sensors
@@ -32,13 +32,14 @@ public:
   float getUV();
   float getNoise();
   float getFlowMeter();
-  float getCO2();
+  float getCO();
   float getNO2();
   void sensorsUpdate(); 
   void readSerials();
   void terminal();
-  
   long latLgt[3];
+  float avg(byte pin);
+  
   //void getLatLgt(long *latLgt);
 private:
 };

@@ -8,11 +8,13 @@
 #define CONCAT(a,b,c) a STR(b) c
 
 #define DHT_PIN 9              
+
 #define LDR_PIN A0 //pin LDR Analogico
-#define UV_PIN A5 //pin UV Analogico
+#define NO2_PIN A1  //pin NO2 analogico   // dos resistencias en serie 51k , 820ohm
+#define CO_PIN A2  //pin CO2 analogico  // dos resistencias en serie 100k , 820ohm
 #define SOUND_PIN A4 //pin SOUND Analogico
-#define CO2_PIN A2  //pin CO2 analogico
-#define NO2_PIN A1  //pin NO2 analogico
+#define UV_PIN A5 //pin UV Analogico
+
 #define FLOWMETER_PIN 3 //pin CAUDAL Digital
 
 // 13 -10 para softserial
@@ -31,7 +33,7 @@
 
 #define COMMAND_MODE_GUARD_TIME 250 // in milliseconds
 #define DEBUG_MODE true
-#define HAS_GPS true
+#define HAS_GPS false;
 #define TYPE_LINK_CONNECTION 1 
 
 
@@ -70,17 +72,17 @@ int port = 8000; // the port, 80 for HTTP
 */
 
 // ip server
-//static char server[] = "192.168.1.201";
-static char server[] = "smartsensorv2.herokuapp.com";
+static char server[] = "192.168.1.34";
+//static char server[] = "smartsensorv2.herokuapp.com";
 //static char server[] = "remote-device.dyndns-at-work.com";
 
-#define PORT 80
-//static  char ssid[] = "Lobo_Robot"; 
-//static  char pass[] = "loborobot2015";   
+#define PORT 8080
+static  char ssid[] = "Lobo_Robot"; 
+static  char pass[] = "loborobot2015";   
+#define POST_INTERVAL 20000
 
-
-static  char ssid[] = "WLAN_A490"; 
-static  char pass[] = "Z2C26C54CA490";   
+//static  char ssid[] = "WLAN_A490"; 
+//static  char pass[] = "Z2C26C54CA490";   
 
 // commans AT for set HLK-RM04 (not use because we use WiFiRM04 library)
 /*static char *commands_wifi_client[13]={
@@ -102,15 +104,17 @@ static  char pass[] = "Z2C26C54CA490";
 static char* HTTPPOST[7]={
 //  "POST /api/update/ HTTP/1.0",
   "POST /webapi/update/ HTTP/1.0",
-  "Host: smartsensorv2.herokuapp.com",
+//  "Host: smartsensorv2.herokuapp.com",
+ // "Host: remote-device.dyndns-at-work.com",
  // "Host: 192.168.1.201",
+  "Host: 192.168.1.34",
   "User-Agent: SmartSensor",
   "Content-Type: application/json",
   "Accept: application/json",
-  "Content-Length: ",
-  "Connection: close"
+  "Connection: close",
+  "Content-Length: "
   };
-    
+/*    
 static char* bodyJSON2[14]={
   "{\"temp\": ",
   ",\"hum\": ",
@@ -126,7 +130,7 @@ static char* bodyJSON2[14]={
   ",\"timestamp\": \"",
   "\",\"device\": \"166d77ac1b46a1ec38aa35ab7e628ab5\"",
   "}"
-  };
+  };*/ 
 static char* bodyJSON3[14]={
   "{\"temperature\": \"",
   "\",\"humidity\": \"",
@@ -134,7 +138,6 @@ static char* bodyJSON3[14]={
   "\",\"ultra_violet\": \"",
   "\",\"sound\": \"",
   "\",\"flowmeter\": \"",
-  "\",\"volume\": \"",
   "\",\"nitrogen_dioxide\": \"",
   "\",\"carbon_monoxide\": \"",
   "\",\"latitude\": \"",
