@@ -26,7 +26,7 @@ void Core::begin(){ //init variables
   Wire.begin();
   RTC.begin();
   // run clock with time PC
-  if (! RTC.isrunning()) {
+  if (!RTC.isrunning()) {
     //RTC.adjust(DateTime(__DATE__, __TIME__));
   }
   RTC.adjust(DateTime(__DATE__, __TIME__));

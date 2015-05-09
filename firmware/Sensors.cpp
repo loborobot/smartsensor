@@ -5,12 +5,12 @@
 //#include "Connection.h"
 #include <WiFlyHQ.h>
 // pointers for call object
-Sensors sensor;
+//Sensors sensor;
 //Resources presc__;
 //Connection connection;
 WiFly wifly;
 
-char buf[32];
+//char buf[32];
 // sensor's variables
 float temperature;
 float humidity;
@@ -19,9 +19,21 @@ boolean wifiStatus;
 boolean connStatus;
 byte tried;
 
+
+uint8_t data[6];
+int8_t _count;
+unsigned long _lastreadtime;
+
+boolean firstreading;
+
 long value_sensors[SENSORS_NUMBER];
 char current_time[20];
+char buf[87];
 
+// MEMORY: 27.336
+//         27.654
+    //     27.568
+         //27.354  
 // count how many pulses!
 volatile uint16_t pulses = 0;
 // track the state of the pulse pin
@@ -32,14 +44,11 @@ volatile uint32_t lastflowratetimer = 0;
 volatile float flowrate;
 
 
-float vcc = 5.0;
-float Res0 = 100000;
+//float vcc = 5.0;
+//float Res0 = 100000;
 
 Core core;
 
-void ISRFuncFlowmeter(){
-  pulses++;  
-}
 
 void useInterrupt(boolean v) {
   if (v) {
@@ -52,6 +61,24 @@ void useInterrupt(boolean v) {
     TIMSK0 &= ~_BV(OCIE0A);
   }
 }
+
+void send200()
+{
+    wifly.println(F("HTTP/1.1 200 OK"));
+    wifly.println(F("Content-Type: text/html"));
+    wifly.println(F("Transfer-Encoding: chunked"));
+    wifly.println();
+
+}
+
+void send404()
+{
+    wifly.println(F("HTTP/1.1 404 Not Found"));
+    wifly.println(F("Content-Type: text/html"));
+    wifly.println(F("Transfer-Encoding: chunked"));
+    wifly.println();
+}
+
 /*
 float Sensors::getFlowMeter(){
   
@@ -69,8 +96,8 @@ float Sensors::getFlowMeter(){
 
 void Sensors::begin(){ //init variables
 
-  Serial.begin(DEFAULT_BAUD1);
-  Serial1.begin(DEFAULT_BAUD2);
+  Serial.begin(115200);
+  Serial1.begin(9600);
 
   #ifdef DEBUG_MODE
     while(!Serial)
@@ -99,45 +126,74 @@ void Sensors::begin(){ //init variables
     wifly.setSSID(ssid);
     wifly.setPassphrase(pass);
     wifly.enableDHCP();
-    wifiStatus = true; 
+    wifly.save();
     
-    if (!wifly.join()) 
+    if (wifly.join()) 
     {
-    #ifdef DEBUG_MODE   
-      Serial.println(F("Failed to join wifi network"));
-    #endif
-      //terminal();
+      #ifdef DEBUG_MODE   
+        Serial.println(F("Joined wifi network"));
+      #endif
+      
+      wifiStatus = true; 
+    
+    }else
+    {
+      #ifdef DEBUG_MODE   
+        Serial.println(F("Failed to join wifi network"));
+      #endif
+      wifly.terminal();
       //readSerials();  
       wifiStatus = false;
-    } 
+      
+    }
   } else  
   {
-    if(!wifly.join())
-    {
-    #ifdef DEBUG_MODE   
-      Serial.println(F("Failed to join wifi network"));
+    #ifdef DEBUG_MODE 
+     Serial.println(F("Already joined network1"));
     #endif
-      wifiStatus = false;
-    }else{
-     Serial.println(F("Already joined network"));
-    }
   }
+  
+  wifly.setBroadcastInterval(0); // Turn off UPD broadcast
   
   #ifdef DEBUG_MODE   
     Serial.print(F("IP: "));
     Serial.println(wifly.getIP(buf, sizeof(buf)));
   #endif   
 
-  /*if (wifly.isConnected()) { //TCP connection
+  wifly.setDeviceID(F("SmartSensor"));
+
+  if (wifly.isConnected()) { //TCP connection
+  #ifdef DEBUG_MODE   
+    Serial.println(F("Old connection active. Closing"));
+  #endif
     wifly.close();
     connStatus = false;
-  }*/
+  }
 
+  wifly.setProtocol(WIFLY_PROTOCOL_TCP);
+
+  if (wifly.getPort() != 80) {
+    wifly.setPort(80);
+    /* local port does not take effect until the WiFly has rebooted (2.32) */
+    wifly.save();
+    #ifdef DEBUG_MODE   
+      Serial.println(F("Set port to 80, rebooting to make it work"));
+    #endif
+    wifly.reboot();
+    delay(3000);
+  }
   
   core.begin(); 
 
+  pinMode(DHT_PIN, INPUT);
+  digitalWrite(DHT_PIN, HIGH);
+
   pinMode(CO_PIN, INPUT);
   pinMode(NO2_PIN, INPUT);
+
+  firstreading=true;
+  _lastreadtime=0;
+  _count=6;
 
 #ifdef ENABLED_INT_FLOWMETER 
   pinMode(FLOWMETER_PIN, INPUT);
@@ -170,19 +226,54 @@ void Sensors::readSerials(){
  unsigned long startTime = millis();
  unsigned long stopTime = startTime + POST_INTERVAL;
   
-  if(Serial.available()){
-    byte inByte = Serial.read();
-    
-  }
-  /*#ifdef DEBUG_MODE     
-    Serial.println(F("hey i am here"));
-  #endif*/
-   
+ 
   while (millis() < stopTime){
+    // wait for incomming data
+    #ifdef DEBUG_MODE       
+      //Serial.println(F(" waiting to next post")); 
+    #endif     
+
+    if(wifly.available() > 0) {
+       /* See if there is a request */
+      if (wifly.gets(buf, sizeof(buf))) 
+      {
+        Serial.println(buf);
+        if (strncmp_P(buf, PSTR("POST /"), 6) == 0) 
+        {
+          byte i=0;
+  	  while(i<9){
+            wifly.gets(buf, sizeof(buf));
+            Serial.println(buf);           
+            
+            //delay(10);
+          }
+          
+	  send200();
+          //wifly.reboot();
+	} else
+        {/* Unexpected request */
+          Serial.print(F("Unexpected: "));
+	  Serial.println(buf);
+          wifly.flushRx();
+	  Serial.println(F("Sending 404"));
+	  send404();
+	}
+
+        wifly.flushRx();
+            
+        #ifdef DEBUG_MODE       
+          Serial.println(F("Echo wifiavailable")); 
+        #endif     
+
+        
+      }
+    }
+    
+    /*
     while(Serial1.available()) {
       byte inByte = Serial1.read();
       Serial.write(inByte);
-    }
+    }*/
   } 
   startTime = 0;
   stopTime = 0;
@@ -190,8 +281,10 @@ void Sensors::readSerials(){
 }
 
 ISR(TIMER1_OVF_vect){
-  sensor.readSerials();  
+  //readSerials(); 
+
 }
+
 
 ISR(TIMER0_COMPA_vect) {
   uint8_t x = digitalRead(FLOWMETER_PIN);
@@ -214,16 +307,22 @@ ISR(TIMER0_COMPA_vect) {
 void Sensors::execute(){ // init program
 
   if (!wifly.isAssociated()) 
-    wifiStatus = false;
+  {
+    if (wifly.join())
+      wifiStatus = true;
+    else
+      wifiStatus = false;
+  }
   
   if (tried == 4 && !wifiStatus) 
   {
           
     #ifdef DEBUG_MODE   
-      Serial.println(F("Rebooting and joining network"));
+      Serial.print(F("Rebooting..."));
+      
     #endif
     wifly.reboot();
-    delay(2000);
+    delay(3000);
     
     wifly.setSSID(ssid);
     wifly.setPassphrase(pass);
@@ -237,13 +336,10 @@ void Sensors::execute(){ // init program
       terminal();
       //readSerials();
       wifiStatus = false;
-    }
+    }else
+      wifiStatus = true;
+      
     tried = 0;
-  }else 
-  {
-    #ifdef DEBUG_MODE     
-      Serial.println(F("Already joined network"));
-    #endif
   }
 
   if (wifly.open(server, PORT) && wifiStatus) 
@@ -254,7 +350,7 @@ void Sensors::execute(){ // init program
       Serial.println(server);
     #endif      
 
-    char itoaBuffer[8];
+    //char itoaBuffer[8];
     byte i; 
    
     #ifdef DEBUG_MODE
@@ -262,60 +358,62 @@ void Sensors::execute(){ // init program
           Serial.println(HTTPPOST[i]);
        
        Serial.print(HTTPPOST[6]);
-       //itoa(strlen(bodyPOST),itoaBuffer,10);        
-       //wifly.println(itoaBuffer);
-       Serial.println("290");
+       ////itoa(strlen(bodyPOST),itoaBuffer,10);        
+       ////wifly.println(itoaBuffer);
+       Serial.println("273");
        Serial.println();
       
        for(i = 0; i<SENSORS_NUMBER; i++){ //11
-        if(i==5)
+        if(i==5) // flow meter
         {
-          Serial.print(bodyJSON3[i]);
+          Serial.print(bodyJSON2[i]);
           Serial.print(getFlowMeter());
           
         }else{
-          Serial.print(bodyJSON3[i]);
+          Serial.print(bodyJSON2[i]);
           Serial.print(value_sensors[i]);
         }
        }
      
-       Serial.print(bodyJSON3[i]);
-       Serial.print(bodyJSON3[i+1]);
+       Serial.print(bodyJSON2[i]);
+       Serial.print(bodyJSON2[i+1]);
        Serial.print(core.getRTC());
-       Serial.print(bodyJSON3[i+2]);
+       Serial.println(bodyJSON2[i+2]);
     #endif
 
       for(i=0; i<6; i++)
           wifly.println(HTTPPOST[i]);
        
        wifly.print(HTTPPOST[6]);
-       //itoa(strlen(bodyPOST),itoaBuffer,10);        
-       //wifly.println(itoaBuffer);
-       wifly.println("290");
+       ////itoa(strlen(bodyPOST),itoaBuffer,10);        
+       ////wifly.println(itoaBuffer);
+       wifly.println("273");
        wifly.println();
-      
+        
        for(i = 0; i<SENSORS_NUMBER; i++){ //11
         if(i==5)
         {
-          wifly.print(bodyJSON3[i]);
+          wifly.print(bodyJSON2[i]);
           wifly.print(getFlowMeter());
           
         }else{
-          wifly.print(bodyJSON3[i]);
+          wifly.print(bodyJSON2[i]);
           wifly.print(value_sensors[i]);
         }
        }
      
-       wifly.print(bodyJSON3[i]);
-       wifly.print(bodyJSON3[i+1]);
+       wifly.print(bodyJSON2[i]);
+       wifly.print(bodyJSON2[i+1]);
        wifly.print(core.getRTC());
-       wifly.print(bodyJSON3[i+2]);
+       wifly.print(bodyJSON2[i+2]);
        
     #ifdef DEBUG_MODE             
-       Serial.print(F(" \nPosted to server at time "));
+       Serial.print(F(" \nRegistro remoto con fecha: "));
+       Serial.println(core.getRTC());
+       //Serial.print(F(" \pulses "));
        //Serial.print(pulses);
        //Serial.print(F(" flowmeter  "));
-       Serial.println(core.getRTC());
+       //Serial.print(getFlowMeter());
        
     #endif             
       /*
@@ -347,7 +445,12 @@ void Sensors::execute(){ // init program
       */
       
       
-      wifly.close();
+      if(!wifly.close());
+      {
+        #ifdef DEBUG_MODE       
+          Serial.println(F("Failed to close tcp"));
+        #endif
+      }
       //connStatus = false;
       
   } else
@@ -355,12 +458,17 @@ void Sensors::execute(){ // init program
     wifiStatus = false;
     tried++;
     
-  #ifdef DEBUG_MODE       
-    Serial.println(F("Failed to connect"));
-  #endif
+    #ifdef DEBUG_MODE       
+      Serial.print(F("Failed to open tcp tried# ")); Serial.println(tried);
+    #endif
   }
-  readSerials();
-        
+  
+  if(wifiStatus)
+    readSerials();
+    
+  #ifdef DEBUG_MODE       
+    Serial.println(F("Echo bucle")); 
+  #endif     
 
 /*  
   if(!connection.wifiStatus)
@@ -387,7 +495,7 @@ void Sensors::execute(){ // init program
   
   
 }
-
+/*
 uint8_t Sensors::readDataDHT()
 {
 	// BUFFER TO RECEIVE
@@ -401,7 +509,7 @@ uint8_t Sensors::readDataDHT()
 	// REQUEST SAMPLE
 	pinMode(DHT_PIN, OUTPUT);
 	digitalWrite(DHT_PIN, LOW);
-	delay(18);
+	delay(20);
 	digitalWrite(DHT_PIN, HIGH);
 	delayMicroseconds(40);
 	pinMode(DHT_PIN, INPUT);
@@ -447,7 +555,116 @@ uint8_t Sensors::readDataDHT()
 	if (bits[4] != sum) return -1; // -1 : checksum error
 	return 0; //  0 : OK
 }
+*/
+boolean Sensors::readDHT() {
+  uint8_t laststate = HIGH;
+  uint8_t counter = 0;
+  uint8_t j = 0, i;
+  unsigned long currenttime;
 
+  // Check if sensor was read less than two seconds ago and return early
+  // to use last reading.
+  currenttime = millis();
+  if (currenttime < _lastreadtime) {
+    // ie there was a rollover
+    _lastreadtime = 0;
+  }
+  if (!firstreading && ((currenttime - _lastreadtime) < 2000)) {
+    return true; // return last correct measurement
+    //delay(2000 - (currenttime - _lastreadtime));
+  }
+  firstreading = false;
+
+  _lastreadtime = millis();
+
+  data[0] = data[1] = data[2] = data[3] = data[4] = 0;
+  
+  // pull the pin high and wait 250 milliseconds
+  digitalWrite(DHT_PIN, HIGH);
+  delay(250);
+
+  // now pull it low for ~20 milliseconds
+  pinMode(DHT_PIN, OUTPUT);
+  digitalWrite(DHT_PIN, LOW);
+  delay(20);
+  noInterrupts();
+  digitalWrite(DHT_PIN, HIGH);
+  delayMicroseconds(40);
+  pinMode(DHT_PIN, INPUT);
+
+  // read in timings
+  for ( i=0; i< MAXTIMINGS; i++) {
+    counter = 0;
+    while (digitalRead(DHT_PIN) == laststate) {
+      counter++;
+      delayMicroseconds(1);
+      if (counter == 255) {
+        break;
+      }
+    }
+    laststate = digitalRead(DHT_PIN);
+
+    if (counter == 255) break;
+
+    // ignore first 3 transitions
+    if ((i >= 4) && (i%2 == 0)) {
+      // shove each bit into the storage bytes
+      data[j/8] <<= 1;
+      if (counter > _count)
+        data[j/8] |= 1;
+      j++;
+    }
+
+  }
+
+  interrupts();
+  
+  // check we read 40 bits and that the checksum matches
+  if ((j >= 40) && 
+      (data[4] == ((data[0] + data[1] + data[2] + data[3]) & 0xFF)) ) {
+        
+    humidity = (data[0]*256 + data[1])/10.0;   
+    temperature = ((data[2] & 0x7F)*256 + data[3])/10.0;
+    
+    if (data[2] & 0x80)
+	temperature *= -1;  
+    return true;
+  }
+  
+  return false;
+
+}
+/*
+float Sensors::readHumidity() {
+  float f;
+  if(readDHT())
+  {
+      f = data[0];
+      f *= 256;
+      f += data[1];
+      f /= 10;
+      return f;
+    }
+  
+  return NAN;
+}
+
+float Sensors::readTemperature() {
+  float f;
+
+  if (readDHT()) {
+      f = data[2] & 0x7F;
+      f *= 256;
+      f += data[3];
+      f /= 10;
+      if (data[2] & 0x80)
+	f *= -1;
+      return f;
+   }
+
+  return NAN;
+}
+*/
 float Sensors::getLDR(){
   float _valueLDR = avg(LDR_PIN);
   
@@ -514,25 +731,28 @@ float Sensors::avg(byte pin) {
   byte times = 20;
   long acum = 0;
   
-  for(byte i=0; i<times; i++)
-   acum+= analogRead(pin);
-
+  for(byte i=0; i<times; i++){
+    acum+= analogRead(pin);
+    delay(2);
+  }
   return(float)acum / times;  
 }
 
 
 void Sensors::sensorsUpdate(){
 
-  uint8_t check = readDataDHT();
-  
-  //presc__.RTCread();
-  value_sensors[0] = temperature;
+  //uint8_t check = readDataDHT();
+  readDHT();
+  //value_sensors[0] = temperature;
+  //value_sensors[1] = humidity;   
+  value_sensors[0] = temperature;//random(17,19);//readTemperature();
   value_sensors[1] = humidity;   
+  
   value_sensors[2] = getLDR();
   value_sensors[3] = getUV();
   value_sensors[4] = getNoise();
   
-  #ifdef ENABLED_INT_FLOWMETER  == 1
+  #ifdef ENABLED_INT_FLOWMETER 
     value_sensors[5] = getFlowMeter();
   #else
     value_sensors[5] = -1.0;
@@ -550,8 +770,8 @@ void Sensors::sensorsUpdate(){
   value_sensors[8] = latLgt[0];
   value_sensors[9] = latLgt[1];
 #else
-  value_sensors[8] = -1.0;
-  value_sensors[9] = -1.0;
+  value_sensors[8] = 0.0;
+  value_sensors[9] = 0.0;
 #endif
   
 }

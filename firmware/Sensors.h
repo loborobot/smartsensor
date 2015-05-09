@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#define SENSORS_NUMBER 10
+#define SENSORS_NUMBER 8
 
 
 class Sensors
@@ -17,7 +17,7 @@ public:
   
   float _valueUV;
   float _sound;
-  float _flowmeter; 
+  float _flowmeter;
   float _volume ;
   float _NO2;
   float _CO2;*/
@@ -27,7 +27,10 @@ public:
   void begin();
   void execute();
  
-  uint8_t readDataDHT();
+  //uint8_t readDataDHT();
+  boolean readDHT(void);
+  //float readTemperature();
+  //float readHumidity();
   float getLDR();
   float getUV();
   float getNoise();
@@ -37,9 +40,9 @@ public:
   void sensorsUpdate(); 
   void readSerials();
   void terminal();
-  long latLgt[3];
+  //long latLgt[3];
   float avg(byte pin);
-  
+
   //void getLatLgt(long *latLgt);
 private:
 };

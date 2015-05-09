@@ -1,12 +1,6 @@
 #ifndef __CONSTANST_H__
 #define __CONSTANST_H__
 
-#include <stdio.h>
-
-#define STR1(z) #z
-#define STR(z) STR1(z)
-#define CONCAT(a,b,c) a STR(b) c
-
 #define DHT_PIN 9              
 
 #define LDR_PIN A0 //pin LDR Analogico
@@ -16,30 +10,20 @@
 #define UV_PIN A5 //pin UV Analogico
 
 #define FLOWMETER_PIN 3 //pin CAUDAL Digital
+#define MAXTIMINGS 85//40
 
 // 13 -10 para softserial
 // digital pins for interrruptions to ATMega32U4
 //#define INT0 0 // Digital pin 3  
 #define INT1 1 // Digital pin 2
-#define INT2 2 // Digital pin 0 
-#define INT3 3 // Digital pin 1
-#define INT4 4 // Digital pin 7
 
-#define ENABLED_INT_FLOWMETER 1
+#define ENABLED_INT_FLOWMETER
 
-// check status conection
-#define STATUS_OFFCONNECTION false
-#define STATUS_ONCONNECTION true
 
 #define COMMAND_MODE_GUARD_TIME 250 // in milliseconds
-#define DEBUG_MODE true
-#define HAS_GPS false;
+#define DEBUG_MODE
+//#define HAS_GPS
 #define TYPE_LINK_CONNECTION 1 
-
-
-// Suggest to use 38400, even using hardware UART
-#define DEFAULT_BAUD1	115200 //38400
-#define DEFAULT_BAUD2	9600 //38400
 
 
 //==============GPRS using GSM.h==========
@@ -72,14 +56,15 @@ int port = 8000; // the port, 80 for HTTP
 */
 
 // ip server
-static char server[] = "192.168.1.34";
-//static char server[] = "smartsensorv2.herokuapp.com";
-//static char server[] = "remote-device.dyndns-at-work.com";
+//static char server[] = "192.168.1.201";
+//static char server[] = "smartsensor.herokuapp.com";
+static char server[] = "smartsensor-test.herokuapp.com";
 
-#define PORT 8080
+#define PORT 80
+
 static  char ssid[] = "Lobo_Robot"; 
 static  char pass[] = "loborobot2015";   
-#define POST_INTERVAL 20000
+#define POST_INTERVAL 60000
 
 //static  char ssid[] = "WLAN_A490"; 
 //static  char pass[] = "Z2C26C54CA490";   
@@ -102,35 +87,30 @@ static  char pass[] = "loborobot2015";
   };*/
 
 static char* HTTPPOST[7]={
-//  "POST /api/update/ HTTP/1.0",
-  "POST /webapi/update/ HTTP/1.0",
-//  "Host: smartsensorv2.herokuapp.com",
- // "Host: remote-device.dyndns-at-work.com",
- // "Host: 192.168.1.201",
-  "Host: 192.168.1.34",
+  "POST /webapi/update/ HTTP/1.1",
+  "Host: smartsensor-test.herokuapp.com",
+// "Host: 192.168.1.201",
   "User-Agent: SmartSensor",
   "Content-Type: application/json",
   "Accept: application/json",
   "Connection: close",
   "Content-Length: "
   };
-/*    
+    
 static char* bodyJSON2[14]={
-  "{\"temp\": ",
-  ",\"hum\": ",
-  ",\"light\": ",
-  ",\"uv\": ",
-  ",\"sound\": ",
-  ",\"flowmeter\": ",
-  ",\"volume\": ",
-  ",\"no2\": ",
-  ",\"co\": ",
-  ",\"latitude\": ",
-  ",\"longitude\": ",
-  ",\"timestamp\": \"",
-  "\",\"device\": \"166d77ac1b46a1ec38aa35ab7e628ab5\"",
-  "}"
-  };*/ 
+  "{\"tmp\":\"",
+  "\",\"hum\":\"",
+  "\",\"lig\":\"",
+  "\",\"uv\":\"",
+  "\",\"snd\":\"",
+  "\",\"flm\":\"",
+  "\",\"no2\":\"",
+  "\",\"co\":\"",
+  "\",\"id\":\"166d77ac1b46a1ec38aa35ab7e628ab5\"",
+  ",\"tstamp\":\"",
+  "\"}"
+  };
+  /*
 static char* bodyJSON3[14]={
   "{\"temperature\": \"",
   "\",\"humidity\": \"",
@@ -145,6 +125,6 @@ static char* bodyJSON3[14]={
   "\",\"device\": \"166d77ac1b46a1ec38aa35ab7e628ab5\"", 
   ",\"pub_date\": \"",
   "\"}"
-  };
+  };*/
 
 #endif

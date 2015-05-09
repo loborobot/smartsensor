@@ -63,7 +63,7 @@ String readString;
 
 void Connection::begin(){ //init variables
 
-#if DEBUG_MODE
+#ifdef DEBUG_MODE
   Serial.println(F("Connection to AP"));
 #endif
   connStatus = false;
@@ -71,13 +71,13 @@ void Connection::begin(){ //init variables
   wifiStatus = false;
   
   if(!attachWIFI()){
-#if DEBUG_MODE
+#ifdef DEBUG_MODE
     Serial.println(F("\ Failed to connecting to AP..."));
 #endif  
     wifiStatus = false;
   }else{
    wifiStatus = true;
-#if DEBUG_MODE
+#ifdef DEBUG_MODE
     Serial.println(F("\ Connection stablished to AP..."));
 #endif  
   }
@@ -98,7 +98,7 @@ boolean Connection::connectTCP(const char *addr, int port) {
     Serial1.print(port);
     simpleWriteln("");
     if (!waitResp("*OPEN*", 3000)){
-#if DEBUG_MODE  
+#ifdef DEBUG_MODE  
       Serial.println("no open TCP ...");
 #endif      
       connStatus = false;
@@ -128,14 +128,10 @@ boolean Connection::disconnectTCP() {
 
 boolean Connection::attachWIFI(){
 
-#if DEBUG_MODE
- 
-#endif
-
 #if TYPE_LINK_CONNECTION == 1
    Serial.println(F("entering command mode TYPE_LINK_CONNECTION == 1 "));
   if(enterCommandMode()){
-#if DEBUG_MODE
+#ifdef DEBUG_MODE
     Serial.println(F("sending commads to module"));
 #endif
     //sendCommands();
@@ -151,7 +147,7 @@ boolean Connection::attachWIFI(){
     simpleWriteln(F("save"));
     simpleWriteln(F("reboot"));
 
-#if DEBUG_MODE
+#ifdef DEBUG_MODE
 
     Serial.println(F("set wlan auth 0")); // 4
     Serial.println(F("set ip dhcp 1"));
@@ -173,7 +169,7 @@ boolean Connection::attachWIFI(){
   } else 
   {
     wifiStatus = false;
-#if DEBUG_MODE
+#ifdef DEBUG_MODE
     Serial.println(F("couldn't enter in command mode"));
 #endif
     Serial.println(F("debug repairing"));
@@ -198,7 +194,7 @@ boolean Connection::attachWIFI(){
     simpleWriteln(F("at+net_commit=1"));
     simpleWriteln(F("at+reconn=1"));
 
-#if DEBUG_MODE  
+#ifdef DEBUG_MODE  
      Serial.println(F(" all commands were sended."));
 #endif
 
@@ -207,7 +203,7 @@ boolean Connection::attachWIFI(){
     
   }else
   {
-#if DEBUG_MODE
+#ifdef DEBUG_MODE
     Serial.println(F("couldn't enter in command mode HLK "));
 #endif    
     wifiStatus = false;
@@ -232,7 +228,7 @@ boolean Connection::httpPOST(const char* server, int port, long *value_sensors){
       
       if(!connectTCP(server, port)){
 
-        #if DEBUG_MODE
+        #ifdef DEBUG_MODE
           Serial.print(F("It can't connect to Remote Server Try # "));
           Serial.println(n_of_at);
         #endif
@@ -261,32 +257,32 @@ boolean Connection::httpPOST(const char* server, int port, long *value_sensors){
   Serial1.println();
 
   for(i = 0; i<SENSORS_NUMBER; i++){
-    Serial1.print(bodyJSON3[i]);
+    Serial1.print(bodyJSON2[i]);
     Serial1.print(value_sensors[i]);
   }
   
-  Serial1.print(bodyJSON3[i]);
+  Serial1.print(bodyJSON2[i]);
   Serial1.print(value_sensors[i]);
-  Serial1.print(bodyJSON3[i+1]);
+  Serial1.print(bodyJSON2[i+1]);
   Serial1.print(value_sensors[i+1]);
-  Serial1.print(bodyJSON3[i+2]);
+  Serial1.print(bodyJSON2[i+2]);
   Serial1.print(value_sensors[i+2]);
   Serial1.println();
 
-#if DEBUG_MODE
+#ifdef DEBUG_MODE
 
   for(i = 0; i<SENSORS_NUMBER; i++){
-    Serial.println(bodyJSON3[i]);
+    Serial.println(bodyJSON2[i]);
     Serial.print(value_sensors[i]);  
   }
   
-  Serial.print(bodyJSON3[i]);
+  Serial.print(bodyJSON2[i]);
   Serial.print(value_sensors[i]);
   
-  Serial.print(bodyJSON3[i+1]);
+  Serial.print(bodyJSON2[i+1]);
   Serial.print(value_sensors[i+1]);
   
-  Serial.print(bodyJSON3[i+2]);
+  Serial.print(bodyJSON2[i+2]);
   Serial.print(value_sensors[i+2]);
   Serial.println();
 #endif
@@ -300,14 +296,14 @@ void Connection::sendCommands() {
 
   byte i = 0;
   while( i < ENTRY ) {
-#if DEBUG_MODE  
+#ifdef DEBUG_MODE  
     Serial.println(cmds_rn[i]);
 #endif
     Serial1.println(cmds_rn[i]);
     delay(COMMAND_DELAY);
     
     while(Serial1.available()) {
-#if DEBUG_MODE    
+#ifdef DEBUG_MODE    
       Serial.println(Serial1.read());
 #endif   
     }
@@ -468,7 +464,7 @@ bool Connection::echoTest(long timeout)
   i = Serial1.readBytes(buf, MAX_TEMP_BUF_SIZE);
   
   if(i == 0) {
-#if DEBUG_MODE  
+#ifdef DEBUG_MODE  
   Serial.println("Echo no resp");
 #endif
     return false;
