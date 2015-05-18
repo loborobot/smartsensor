@@ -25,7 +25,9 @@
 #undef PSTR 
 #define PSTR(s) (__extension__({static prog_char __c[] PROGMEM = (s); &__c[0];})) 
 
-#include <WiFlyHQ.h>
+#include "WiFlyHQ.h"
+
+#include <ArduinoJson.h>
 
 //#include <SoftwareSerial.h>
 
@@ -51,11 +53,21 @@ char buf[120];
 
 #define POST_INTERVAL 10000
 
+////Pin connected to Data in (DS) of 74HC595
+const int dataPin = 8;
+//Pin connected to latch pin (ST_CP) of 74HC595
+const int latchPin = 7;
+//Pin connected to clock pin (SH_CP) of 74HC595
+const int clockPin = 6;
+
 void setup()
 {
     Serial.begin(9600);
     Serial1.begin(9600);
     
+
+  
+ 
     Serial.println(F("Starting"));
     Serial.print(F("Free memory: "));
     Serial.println(wifly.getFreeMemory(),DEC);
@@ -111,6 +123,12 @@ void setup()
 	wifly.reboot();
 	delay(3000);
     }
+    
+      //set pins to output so you can control the shift register
+    pinMode(latchPin, OUTPUT);
+    pinMode(clockPin, OUTPUT);
+    pinMode(dataPin, OUTPUT);
+    
     Serial.println(F("Ready"));
 }
 
@@ -122,9 +140,24 @@ void readSerials(){
   
  
   while (millis() < stopTime){
-    // wait for incomming data
-   if (wifly.available() > 0) {
 
+    // wait for incomming data
+
+   if (wifly.available() > 0 && wifly.isConnected()) {
+       char c;
+       /*
+       do{ 
+         c = wifly.read(); 
+         Serial.print(c);
+       }while(c=!'*');*/
+              
+        while(wifly.readTimeout(&c,10))
+        { 
+          if (c=='*')
+            break;
+        }
+        
+         
         /* See if there is a request */
 	if (wifly.gets(buf, sizeof(buf))) {
             
@@ -140,18 +173,28 @@ void readSerials(){
                 //wifly.flushRx();
 		sendIndex();
 		Serial.println(F("Sent index page"));
-	    } else if (strncmp_P(buf, PSTR("POST /"), 6) == 0) {
+	    } else if (strncmp_P(buf, PSTR("POST /"), 6) == 0 || 
+                       strncmp_P(buf, PSTR("*CLOS*POST /"), 12) == 0 ||
+                       strncmp_P(buf, PSTR("*OPEN*POST /"), 12) == 0 ) {
 	        /* Form POST */
-	        char username[16];
+	     
 	        Serial.println(F("Got POST"));
 
                 byte i=0;
+                
                 while(i<9){
                    wifly.gets(buf, sizeof(buf));
                    Serial.println(buf);
                    i++;
-                }
-
+                } 
+                /*
+                while(wifly.gets(buf, sizeof(buf)) > 0)*/
+                
+                send200();
+                
+                proccess_data(&buf[0]);
+                              
+            
 		/* Get posted field value 
 		if (wifly.match(F("enabled="))) {
 		    wifly.gets(username, sizeof(username));
@@ -159,29 +202,67 @@ void readSerials(){
 		    sendGreeting(username);
 		    Serial.println(F("Sent greeting page"));
 		}*/
-                send200();
-	    } else if( strncmp_P(buf, PSTR("HTTP/1.0 200 OK"),15) == 0){
-              Serial.println("got OK");
+	    //} else if( strncmp_P(buf, PSTR("HTTP/1.0 200 OK"),15) == 0){
+            //  Serial.println("got code 200 OK");
             } else {
 	        /* Unexpected request */
 		Serial.print(F("Unexpected: "));
 		Serial.println(buf);
-		//wifly.flushRx();		// discard rest of input
+		wifly.flushRx(); // YA NO IMPORTA LO QUE VIENE LUEGO lo descarto con flush
 		Serial.println(F("Sending 404"));
-		send404();
+		//send404();
 	    }
 
-            wifly.flushRx(); // YA NO IMPORTA LO QUE VIENE LUEGO lo descarto con flush
+            
 	}
     } // end if
    
 
   } 
- 
   startTime = 0;
   stopTime = 0;
 
 }
+
+
+void proccess_data( char *buf)
+{
+    Serial.println(buf);
+    StaticJsonBuffer<120> jsonBuffer;
+              
+    JsonObject& root = jsonBuffer.parseObject(buf);
+    
+    if (!root.success()) {
+      Serial.println(F("parseObject() failed"));
+      return;
+    }
+    
+    
+    // cmd
+    byte cmd = root["cmd"];
+    
+    if(cmd == 1)
+    { 
+      byte dec = root["st"];
+      byte port = root["po"];
+  
+      double timestart = root["ts"];
+      double timeend = root["te"];
+      const char *freq = root["fq"];
+      Serial.print("estado ");
+      Serial.println(dec);
+       
+      digitalWrite(latchPin, LOW);
+      // shift out the bits:
+      shiftOut(dataPin, clockPin, MSBFIRST, dec);  
+      //take the latch pin high so the LEDs will light up:
+      digitalWrite(latchPin, HIGH);
+      
+    }
+                 
+
+}
+
 
 char bodyPOST[]="{\"tmp\": \"0\", \"hum\": \"0\", \"lig\": \"0\", \"uv\": \"0\", \"snd\": \"0\", \"flm\": \"0\", \"no2\": \"0\", \"co\": \"0\", \"id\": \"166d77ac1b46a1ec38aa35ab7e628ab5\", \"tstamp\": \"2015-02-10T22:02:27.321Z\"}";    
 char itoaBuffer[8];
@@ -189,29 +270,34 @@ void loop()
 {
    
     //if(wifly.open("smartsensor-test.herokuapp.com", 80)){
-      if(wifly.open("192.168.1.34", 8080)){
-    
+      //if(wifly.open("192.168.1.34", 8080)){ // internamente vuelve a cerrar si esta abierta la coneecion tcp
+     if(wifly.open("192.168.1.34", 8080)){ // internamente vuelve a cerrar si esta abierta la coneecion tcp
+      
       Serial.println(F("Posting... "));
       
       wifly.println("POST /webapi/update/ HTTP/1.1");
+      //wifly.println("Host: smartsensor-test.herokuapp.com");
       wifly.println("Host: 192.168.1.34");
+     
       wifly.println("User-Agent: SmartSensor");
       wifly.println("Content-Type: application/json");
       wifly.println("Accept: application/json");
-      //wifly.println("Connection: close");
-      wifly.println("Transfer-Encoding: chunked");
+      wifly.println("Connection: close");
+      //wifly.println("Transfer-Encoding: chunked");
       itoa(strlen(bodyPOST), itoaBuffer, 10);
       wifly.print("Content-Length: ");
       wifly.println(itoaBuffer);
-      wifly.println("");
       wifly.println("");
       wifly.print(bodyPOST);
       Serial.print(F("Posted... "));
       Serial.print(itoaBuffer);
       Serial.println(F(" bytes"));
       Serial.println(bodyPOST);
-      
-      /*if(wifly.close());
+      //wifly.flushRx();
+      ///wifly.enterCommandMode();
+      // no puede cerrarse la conexion si quiero hacer llamadas remotas sino el dispositivo muere 
+      /*
+      if(wifly.close());
       {
         Serial.println(F("Failed to close tcp"));
         
@@ -300,7 +386,7 @@ void send200()
 {
     wifly.println(F("HTTP/1.1 200 OK"));
     wifly.println(F("Content-Type: text/html"));
-    wifly.println(F("Transfer-Encoding: chunked"));
+    //    wifly.println(F("Transfer-Encoding: chunked"));
     wifly.println();
 
 }

@@ -3,7 +3,7 @@
 #include "Sensors.h"
 #include "Core.h"
 //#include "Connection.h"
-#include <WiFlyHQ.h>
+#include "WiFlyHQ.h"
 // pointers for call object
 //Sensors sensor;
 //Resources presc__;

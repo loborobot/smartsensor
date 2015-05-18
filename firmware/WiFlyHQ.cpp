@@ -34,7 +34,7 @@ extern unsigned int __bss_end;
 extern unsigned int __heap_start;
 extern void *__brkval;
 
-#undef DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #define DPRINT(item) debug.print(item)
@@ -605,19 +605,19 @@ int WiFly::read()
 	}
 	peekCount--;
     } else {
-	data = serial->read();
-	/* TCP connected? Check for close */
-	if (connected && data == '*') {
-	    if (checkClose(false)) {
-		return -1;
-	    } else {
-		data = (uint8_t)peekBuf[peekTail++];
-		if (peekTail >= sizeof(peekBuf)) {
-		    peekTail = 0;
-		}
-		peekCount--;
-	    }
-	}
+    	data = serial->read();
+    	/* TCP connected? Check for close */
+    	if (connected && data == '*') {
+    	    if (checkClose(false)) {
+    		  return -1;
+    	    } else {
+        		data = (uint8_t)peekBuf[peekTail++];
+        		if (peekTail >= sizeof(peekBuf)) {
+        		    peekTail = 0;
+        		}
+        		peekCount--;
+    	    }
+    	}
     }
 
     return data;
@@ -641,15 +641,19 @@ int WiFly::available()
 	}
 	/* Check for TCP stream closure */
 	if (serial->peek() == '*') {
-	    if (connected) {
-		if (checkClose(true)) {
-		    return -1;
-		} else {
-		    return peekCount + serial->available();
-		}
+	    if (connected) 
+        {
+    		if (checkClose(true)) // esta cerrado? 
+            {
+    		    return -1;
+    		} else 
+            {
+
+    		    return peekCount + serial->available();
+    		}
 	    } else {
-		checkOpen(true);
-		return peekCount + serial->available();
+		  checkOpen(true);
+		  return peekCount + serial->available();
 	    }
 	}
     }
@@ -662,6 +666,52 @@ void WiFly::flush()
    serial->flush();
 }
   
+/**
+ * Read characters into the buffer until a carriage-return and newline is reached.
+ * If the buffer is too small, the remaining characters in the line are discarded.
+ * @param buf - the buffer to read into. If this is NULL then all characters in the line are discarded.
+ * @param size - the size of the buffer (max number of characters it can store)
+ * @param timeout - the number of milliseconds to wait for a new character to arrive
+ * @returns the number of characters read into the buffer.
+ * @retval 0 - timeout reading newline
+ * @note The buffer will be null terminated, and in effect can hold size-1 characters.
+ */
+int WiFly::gets(char *buf, int size, uint16_t timeout)
+{
+    char ch;
+    int ind=0;
+
+    DPRINTLN(F("gets:"));
+
+    while (readTimeout(&ch, timeout)) {
+    if (ch == '\r') {
+        readTimeout(&ch, timeout);
+        if (ch == '\n') {
+        if (buf) {
+            buf[ind] = 0;
+        }
+        return ind;
+        }
+        if (buf) {
+        if (ind < (size-2)) {
+            buf[ind++] = '\r';
+            buf[ind++] = ch;
+        } else if (ind < (size - 1)) {
+            buf[ind++] = '\r';
+        }
+        }
+    }
+    /* Truncate to buffer size */
+    if ((ind < (size-1)) && buf) {
+        buf[ind++] = ch;
+    }
+    }
+
+    if (buf) {
+    buf[ind] = 0;
+    }
+    return 0;
+}
 
 /** Hex dump a string */
 void WiFly::dump(const char *str)
@@ -1174,52 +1224,7 @@ int WiFly::getsTerm(char *buf, int size, char term, uint16_t timeout)
     return 0;
 }
 
-/**
- * Read characters into the buffer until a carriage-return and newline is reached.
- * If the buffer is too small, the remaining characters in the line are discarded.
- * @param buf - the buffer to read into. If this is NULL then all characters in the line are discarded.
- * @param size - the size of the buffer (max number of characters it can store)
- * @param timeout - the number of milliseconds to wait for a new character to arrive
- * @returns the number of characters read into the buffer.
- * @retval 0 - timeout reading newline
- * @note The buffer will be null terminated, and in effect can hold size-1 characters.
- */
-int WiFly::gets(char *buf, int size, uint16_t timeout)
-{
-    char ch;
-    int ind=0;
 
-    DPRINTLN(F("gets:"));
-
-    while (readTimeout(&ch, timeout)) {
-	if (ch == '\r') {
-	    readTimeout(&ch, timeout);
-	    if (ch == '\n') {
-		if (buf) {
-		    buf[ind] = 0;
-		}
-		return ind;
-	    }
-	    if (buf) {
-		if (ind < (size-2)) {
-		    buf[ind++] = '\r';
-		    buf[ind++] = ch;
-		} else if (ind < (size - 1)) {
-		    buf[ind++] = '\r';
-		}
-	    }
-	}
-	/* Truncate to buffer size */
-	if ((ind < (size-1)) && buf) {
-	    buf[ind++] = ch;
-	}
-    }
-
-    if (buf) {
-	buf[ind] = 0;
-    }
-    return 0;
-}
 
 /* Get the WiFly ready to receive a command. */
 boolean WiFly::startCommand()
@@ -2377,7 +2382,6 @@ boolean WiFly::createAdhocNetwork(const char *ssid, uint8_t channel)
 }
 
 /**
- * Open a TCP connection.
  * If there is already an open connection then that is closed first.
  * @param addr - the IP address or hostname to connect. A DNS lookup will be peformed
  *               for the hostname.
@@ -2386,8 +2390,8 @@ boolean WiFly::createAdhocNetwork(const char *ssid, uint8_t channel)
  *                false = start the connection and return. Use openComplete() 
  *                        to determine the result.
  * @retval true - success, the connection is open
- * @retval false - failed, or connection already in progress
- */
+ * @retval false - failed, or connection already in progress*/
+
 boolean WiFly::open(const char *addr, uint16_t port, boolean block)
 {
     char buf[20];
@@ -2415,6 +2419,7 @@ boolean WiFly::open(const char *addr, uint16_t port, boolean block)
     if (!getPrompt()) {
     	debug.println(F("Failed to get prompt"));
     	debug.println(F("WiFly has crashed and will reboot..."));
+        reboot();
     	while (1); /* wait for the reboot */
     	return false;
     }

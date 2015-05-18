@@ -305,12 +305,7 @@ public:
     boolean setFtpTimer(uint16_t msecs);
     boolean setFtpMode(uint8_t mode);
 
-    boolean ftpGet(
-	const char *addr,
-	const char *dir,
-	const char *user,
-	const char *password,
-	const char *filename);
+    boolean readTimeout(char *ch, uint16_t timeout=WIFLY_DEFAULT_TIMEOUT);
 
   private:
     void init(void);
@@ -336,7 +331,7 @@ public:
     boolean getPrompt(uint16_t timeout=WIFLY_DEFAULT_TIMEOUT);
     boolean checkPrompt(const char *str);
     int getResponse(char *buf, int size, uint16_t timeout=WIFLY_DEFAULT_TIMEOUT);
-    boolean readTimeout(char *ch, uint16_t timeout=WIFLY_DEFAULT_TIMEOUT);
+  
     boolean startCommand();
     boolean finishCommand();
     char *getopt(int opt, char *buf, int size);
