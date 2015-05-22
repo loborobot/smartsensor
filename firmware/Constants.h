@@ -62,12 +62,12 @@ static char server[] = "smartsensor-test.herokuapp.com";
 
 #define PORT 80
 
-static  char ssid[] = "Lobo_Robot"; 
-static  char pass[] = "loborobot2015";   
-#define POST_INTERVAL 60000
+//static  char ssid[] = "Lobo_Robot"; 
+//static  char pass[] = "loborobot2015";   
+#define POST_INTERVAL 10000
 
-//static  char ssid[] = "WLAN_A490"; 
-//static  char pass[] = "Z2C26C54CA490";   
+static  char ssid[] = "WLAN_A490"; 
+static  char pass[] = "Z2C26C54CA490";   
 
 // commans AT for set HLK-RM04 (not use because we use WiFiRM04 library)
 /*static char *commands_wifi_client[13]={

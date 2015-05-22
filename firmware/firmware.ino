@@ -7,7 +7,7 @@
 
 #include <Wire.h>
 #include <RTClib.h>
-#include "WiFlyHQ.h"
+#include <WiFlyHQ.h>
 #include "Sensors.h"
 
 Sensors sensors;
